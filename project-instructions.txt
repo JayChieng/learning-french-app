@@ -1,0 +1,90 @@
+Course: INFO-5143 - JavaScript 4 Professor: Marcelo Hespanhol Project: Major Project Due Date: Saturday, Apr 18, 2026, at 11:59 PM Submitting: FOL Submissions Folder, Major Project Weight: 40% of the final grade Document Last Update: Friday, February 27, 2026 
+OVERVIEW: 
+
+In this project, you will use your learned React skills to build a project of your own design. This is a very open-ended assignment in that you are allowed to choose a custom topic and create any application you see fit!  
+You can work alone on this project or in a group of up to 3 students. It's up to you. Just be sure your project reflects the number of students in it: the more students, the more polished your project is expected to be. 
+Important: Even if you are working alone on this project, you MUST be assigned to a group in FOL to see the submission folder. You can be the only student in a group. To join a group, go to FOL, menu Communications / Groups. You have until  March 30th to join a group. 
+The project will consist of 3 parts: 
+1. Planning 
+2. Development 
+3. Presentation 
+1. PLANNING 
+
+Using any prototyping tool of your choice (or even a simple text editor like Microsoft Word) you will create a visual prototype of your application and create a short vision document outlining: 
+• What your use case is for your project. 
+o What will it do? Which components will you need to use to display information? How many "pages" (routes) will you need, and what will be displayed on each one? What data will you need to store? 
+• Which APIs your project will utilize. o See the requirements below for reference. 
+• Possible risks for your implementation. 
+o Maybe you will need to learn functionality outside of the content taught in class in order to see your vision come to life. 
+o The project may be risky because it could be very large for the amount of time you have to implement, etc. 
+IMPORTANT: 
+• Your app MUST have a purpose, so do not submit a bunch of code without any reason for existing. It should be something the users might be interested in using. 
+o It is not because you can choose to develop any app that you will get a good grade for submitting anything. Make sure to create something you would be proud to show other people, possible employers, potential clients, etc. 
+• Your app MUST be original, meaning that no app submitted for labs or developed in class will be accepted as a final project. 
+o It will also not be accepted those apps repurposed for a different use, like a list of games, a list of groceries, a list of music, etc. 
+This planning must be converted into a PDF file to be submitted for evaluation. 
+2. DEVELOPMENT 
+
+Build your application following your plan. Your implementation must also follow the guidelines below: 
+• Your app MUST be developed using React JS: after all, you are expected to demonstrate what you have learned during the classes. 
+• It MUST be a web app: it will be tested using Google Chrome. Therefore, React Native will not be accepted. 
+• Your code must be logically divided up into components, and they must be well organized into your file structure. 
+• You can choose any type of component you can work with. You can create Class Components or only Function Components with Hooks whenever necessary.  
+• The app must behave as a Multi-Page Application, but without reloading the page when clicking on any menu. You can use React Router to accomplish that. 
+• Your app must have a great UI (user interface) and provide a good UX (user experience). You can use any styling method you prefer: CSS, SCSS, Inline Style, Bootstrap, and so on. It is important that your app looks professional. 
+• Your app must also use some type of data management, whether Firebase Firestore or Realtime Database. 
+o It is your responsibility to ensure your database will be active until you receive the final grade for this project. 
+• The use of Redux may not be necessary. This will not be part of the evaluation, so using Redux or not is up to you. 
+• Typing your app with TypeScript is also optional. You can use the standard JavaScript approach, or you can use TypeScript on your app. 
+• Your app must generate no critical warnings or fatal errors on the console when running on any browser. 
+3. PRESENTATION 
+
+You must also record and provide a link to a video where you walk through each requirement above and the associated code. 
+• You should give a brief demo of how the application works. 
+• Also, like a code review, I want to know how you solved each requirement. 
+o Show the app functionality and the snip of code used for it. 
+• The demonstrated app must match the submitted code. 
+• Be objective: videos should be 5 minutes long, or less. 
+Note: It is your responsibility to ensure that I will have access to the submitted video (I will not create an account with a service provider nor pay for subscriptions to watch your video). 
+SUBMISSION REQUIREMENTS: 
+
+Once done, go to FOL > Evaluation > Submissions and submit the following to the appropriate folder in FOL: 
+• Your prototype document outlining what you had planned to build. 
+o It must be in PDF format (after exporting to PDF, ensure it is possible to read every piece of information in the document). 
+• Your zipped application.  
+o Using any method to generate a zip file, compress all folders and files included in your project, EXCEPT the node_modules folder. 
+• A link to your video. 
+o The link can be included in the submission comments. 
+o The video can be hosted on Loom, Vidyard, YouTube, or a similar streaming service (as long as I don't need to log in to watch it). 
+ 
+Important: it is your responsibility to ensure that the submitted file was correctly uploaded and contains the project you intended to submit. For that: 
+• Go back to the submission folder and check that the submission is there. 
+• Download and extract your zip file to ensure it was not corrupted during the upload. 
+• Check the extracted files to see if those are indeed the ones you intended to submit. 
+Wrong submissions will result in 0 marks awarded for this assignment. 
+EVALUATION: 
+
+• You are expected to properly submit your assignment by the deadline specified in this document. In doing so, this project will be evaluated based on this requirement, your delivered code, your delivered presentation, and the final functionality of your app. You can find a detailed rubric attached to this lab's submission folder in FOL. 
+• Only working codes will be evaluated. The code needs to match the purpose described in this document, and grades will only be granted if the intention of this assignment is fulfilled. Students will not receive a partial mark for code that does not run as intended. 
+• Write clear code and avoid making a mess. The professor is entitled to deduct makes if the code is too confusing or part of the code is unnecessary for the running application. Remember that when working for a company, other developers need to understand your code. 
+• Submit your own work and keep it to yourself! Submitting work from another source, or done by another student, is considered cheating, and it will be penalized with a grade of 0 for all shared projects. This will also be reported to the college, and a more severe penalty may be applied. 
+• For video submissions, it is your responsibility to ensure I have access to the submitted video. I will not create an account with a service provider nor pay for subscriptions to watch your video. 
+• Do not leave this assignment to the last minute. If you have any issues at the last minute, your professor may not have enough time to read and answer your questions. Not receiving a reply from the professor will NOT be an acceptable excuse not to deliver the assignment on time. 
+• Late submissions will be penalized according to the following criteria: 
+Until 24 hours late 30% deduction Until 48 hours late 40% deduction Until 72 hours late 50% deduction After 72 hours late Grade of 0  • If any corrections or changes to these instructions are necessary, they will be posted to FOL, and you will be notified. It is your responsibility to check the course page periodically for notifications and changes to the assignment. 
+ 
+ 
+
+ 
+
+1 
+ 
+
+1 
+ 
+
+ 
+
+1 
+ 
+

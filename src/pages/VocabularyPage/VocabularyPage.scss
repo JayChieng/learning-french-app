@@ -1,0 +1,150 @@
+.vocabulary-page {
+  max-width: 1260px;
+  margin: 0 auto;
+}
+
+.vocabulary-page__intro {
+  margin-bottom: 1.5rem;
+}
+
+.vocabulary-page__intro h1 {
+  margin: 0 0 0.75rem;
+  color: #233f6e;
+  font-size: clamp(2.6rem, 4vw, 3.8rem);
+}
+
+.vocabulary-page__intro p {
+  max-width: 760px;
+  color: #5a6578;
+  line-height: 1.6;
+}
+
+.vocabulary-page__search {
+  margin-bottom: 1.25rem;
+}
+
+.vocabulary-page__search input {
+  width: 100%;
+  height: 64px;
+  padding: 0 1.5rem;
+  border: none;
+  border-radius: 24px;
+  background: #ffffff;
+  color: #233f6e;
+  font-size: 1.05rem;
+  box-shadow: 0 18px 40px rgba(25, 48, 87, 0.08);
+  outline: none;
+}
+
+.vocabulary-page__search input::placeholder {
+  color: #8a94a6;
+}
+
+.vocabulary-page__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.vocabulary-page__filter {
+  height: 46px;
+  padding: 0 1.2rem;
+  border: none;
+  border-radius: 14px;
+  background: #d8dde6;
+  color: #233f6e;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.vocabulary-page__filter--active {
+  background: #6ca9f7;
+  color: #ffffff;
+}
+
+.vocabulary-page__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.vocabulary-page__card {
+  position: relative;
+  min-height: 210px;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(25, 48, 87, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.vocabulary-page__audio {
+  position: absolute;
+  top: 1.15rem;
+  right: 1.15rem;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vocabulary-page__audio img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.vocabulary-page__card h3 {
+  margin: 0 0 1rem;
+  padding-right: 3rem;
+  color: #102d5b;
+  font-size: 2rem;
+  line-height: 1.15;
+  word-break: break-word;
+}
+
+.vocabulary-page__english {
+  margin: 0 0 1rem;
+  color: #4f5f79;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.vocabulary-page__example {
+  color: #66758c;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .vocabulary-page__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .vocabulary-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vocabulary-page__card {
+    min-height: 190px;
+  }
+
+  .vocabulary-page__card h3 {
+    font-size: 1.75rem;
+  }
+
+  .vocabulary-page__search input {
+    height: 58px;
+  }
+}

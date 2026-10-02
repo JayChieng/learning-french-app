@@ -1,0 +1,142 @@
+.dashboard-page {
+  max-width: 1260px;
+  margin: 0 auto;
+}
+
+.dashboard-page__intro {
+  text-align: center;
+}
+
+.dashboard-page__intro h1 {
+  margin: 0;
+  color: #233f6e;
+  font-size: clamp(2.6rem, 4vw, 3.8rem);
+}
+
+.dashboard-page__intro p,
+.dashboard-page__card p,
+.dashboard-page__side-card p {
+  color: #5a6578;
+}
+
+.dashboard-page__grid,
+.dashboard-page__side {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.dashboard-page__grid {
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 3rem;
+}
+
+.dashboard-page__card,
+.dashboard-page__side-card,
+.dashboard-page__progress-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(25, 48, 87, 0.08);
+}
+
+.dashboard-page__card {
+  padding: 2rem;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dashboard-page__card img,
+.dashboard-page__side-card img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+
+.dashboard-page__card img {
+  margin: 0 auto 1rem;
+}
+
+.dashboard-page__lower {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.dashboard-page__progress-card {
+  padding: 2rem;
+}
+
+.dashboard-page__ring-row {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.dashboard-page__ring {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(#16a34a 0 72%, #d9dce3 72% 100%);
+}
+
+.dashboard-page__ring-inner {
+  width: calc(100% - 32px);
+  height: calc(100% - 32px);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  font-size: 2.1rem;
+  font-weight: 700;
+}
+
+.dashboard-page__progress-copy strong,
+.dashboard-page__progress-copy span {
+  display: block;
+}
+
+.dashboard-page__progress-copy strong {
+  font-size: 2rem;
+}
+
+.dashboard-page__side-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-page__grid,
+  .dashboard-page__lower {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-page__ring-row {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.dashboard-page__seed-button {
+  margin: 0 0 1.25rem;
+  padding: 0.8rem 1rem;
+  border: none;
+  border-radius: 12px;
+  background: #1d4ed8;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}

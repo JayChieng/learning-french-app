@@ -1,0 +1,36 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #2f4b7c;
+}
+
+.breadcrumb__item a {
+  color: #2f4b7c;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.breadcrumb__item a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb__item span {
+  color: #2f4b7c;
+  font-weight: 500;
+}
+
+.breadcrumb__separator {
+  color: #7b8ba3;
+  font-size: 1rem;
+  line-height: 1;
+}

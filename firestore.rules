@@ -1,0 +1,161 @@
+rules_version = '2';
+
+service cloud.firestore {
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isSuperAdmin() {
+    return isSignedIn() && request.auth.token.role == 'super_admin';
+  }
+
+  function isAdmin() {
+    return isSignedIn() && (
+      request.auth.token.role == 'super_admin' ||
+      request.auth.token.role == 'admin' ||
+      request.auth.token.admin == true
+    );
+  }
+
+  function isOwner(userId) {
+    return isSignedIn() && request.auth.uid == userId;
+  }
+
+  function isValidRole(role) {
+    return role in ['user', 'admin', 'super_admin'];
+  }
+
+  function isValidName(value) {
+    return value is string && value.size() >= 2 && value.size() <= 50;
+  }
+
+  function isValidEmail(value) {
+    return value is string && value.matches('^[^@]+@[^@]+\\.[^@]+$');
+  }
+
+  function isValidWeeklyActivity(value) {
+    return value is list && value.size() == 7 && value.every((entry) => entry is int && entry >= 0 && entry <= 100);
+  }
+
+  function isValidQuizState(value) {
+    return value is map
+      && value.keys().hasOnly(['currentQuestionIndex', 'answeredQuestionIds', 'correctAnswers', 'attempts'])
+      && value.currentQuestionIndex is int && value.currentQuestionIndex >= 0
+      && value.answeredQuestionIds is list && value.answeredQuestionIds.size() <= 200
+      && value.correctAnswers is int && value.correctAnswers >= 0
+      && value.attempts is int && value.attempts >= 0;
+  }
+
+  function isValidLessonData(value) {
+    return value is map
+      && value.keys().hasOnly(['title', 'category', 'level', 'content', 'order'])
+      && value.title is string && value.title.size() >= 3 && value.title.size() <= 80
+      && value.category is string && value.category.size() >= 2 && value.category.size() <= 40
+      && value.level is string && value.level.size() >= 2 && value.level.size() <= 20
+      && value.content is string && value.content.size() >= 10 && value.content.size() <= 4000
+      && value.order is int && value.order >= 1 && value.order <= 200;
+  }
+
+  function isValidLessonDetailData(value) {
+    return value is map
+      && value.keys().hasOnly(['lessonId', 'summary', 'dialogues', 'explanations'])
+      && value.lessonId is string && value.lessonId.size() >= 1
+      && value.summary is string && value.summary.size() >= 10 && value.summary.size() <= 4000
+      && value.dialogues is list && value.dialogues.size() <= 10
+      && value.explanations is list && value.explanations.size() <= 20;
+  }
+
+  function isValidVocabularyData(value) {
+    return value is map
+      && value.keys().hasOnly(['lessonId', 'french', 'english', 'category'])
+      && value.lessonId is string && value.lessonId.size() >= 1
+      && value.french is string && value.french.size() >= 1 && value.french.size() <= 80
+      && value.english is string && value.english.size() >= 1 && value.english.size() <= 80
+      && value.category is string && value.category.size() >= 2 && value.category.size() <= 40;
+  }
+
+  function isValidQuizData(value) {
+    return value is map
+      && value.keys().hasOnly(['title', 'description', 'questions'])
+      && value.title is string && value.title.size() >= 3 && value.title.size() <= 80
+      && value.description is string && value.description.size() >= 10 && value.description.size() <= 400
+      && value.questions is list && value.questions.size() <= 50;
+  }
+
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasOnly([
+          'name',
+          'email',
+          'createdAt',
+          'activities',
+          'weeklyActivity',
+          'quiz',
+          'quizResults',
+          'completedLessonIds',
+          'role'
+        ])
+        && isValidName(request.resource.data.name)
+        && isValidEmail(request.resource.data.email)
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.activities is list && request.resource.data.activities.size() <= 100
+        && isValidWeeklyActivity(request.resource.data.weeklyActivity)
+        && isValidQuizState(request.resource.data.quiz)
+        && request.resource.data.quizResults is map
+        && request.resource.data.completedLessonIds is list && request.resource.data.completedLessonIds.size() <= 200
+        && request.resource.data.role is string && isValidRole(request.resource.data.role);
+      allow update: if (isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'activities',
+          'weeklyActivity',
+          'quiz',
+          'quizResults',
+          'completedLessonIds'
+        ])
+        && request.resource.data.activities is list && request.resource.data.activities.size() <= 100
+        && isValidWeeklyActivity(request.resource.data.weeklyActivity)
+        && isValidQuizState(request.resource.data.quiz)
+        && request.resource.data.quizResults is map
+        && request.resource.data.completedLessonIds is list && request.resource.data.completedLessonIds.size() <= 200))
+        || (isSuperAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+          && request.resource.data.role is string && isValidRole(request.resource.data.role));
+      allow delete: if isAdmin();
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidLessonData(request.resource.data);
+      allow update: if isAdmin() && isValidLessonData(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /lessonDetails/{lessonId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidLessonDetailData(request.resource.data);
+      allow update: if isAdmin() && isValidLessonDetailData(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /vocabulary/{wordId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidVocabularyData(request.resource.data);
+      allow update: if isAdmin() && isValidVocabularyData(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /quizzes/{quizId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidQuizData(request.resource.data);
+      allow update: if isAdmin() && isValidQuizData(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

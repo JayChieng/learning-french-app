@@ -1,0 +1,31 @@
+.auth-field {
+  display: block;
+  margin-bottom: 1.2rem;
+}
+
+.auth-field__label {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: #101828;
+}
+
+.auth-field__input {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #98a2b3;
+  border-radius: 16px;
+}
+
+.auth-field__input img {
+  width: 28px;
+  height: 28px;
+}
+
+.auth-field__input input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+}
