@@ -7,6 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "seed:quiz1": "node scripts/quizzes/seedQuiz1.js",
+    "seed:quiz2": "node scripts/quizzes/seedQuiz2.js",
+    "seed:quiz3": "node scripts/quizzes/seedQuiz3.js",
+    "seed:quiz4": "node scripts/quizzes/seedQuiz4.js",
     "preview": "vite preview"
   },
   "dependencies": {

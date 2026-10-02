@@ -184,7 +184,7 @@ const QuizPage = () => {
                   <p className="quiz-card__description">{quiz.description}</p>
 
                   <div className="quiz-card__meta">
-                    <span>5 questions</span>
+                    <span>{quiz.questions.length} questions</span>
 
                     {quizResult?.completed ? (
                       <span className="quiz-card__score">
