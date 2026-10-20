@@ -416,7 +416,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       signOut: async () => {
         if (userId) {
-          await syncAppState(stateRef.current, userId);
+          try {
+            await syncAppState(stateRef.current, userId);
+          } catch (error) {
+            console.error("Could not sync app state before signing out.", error);
+          }
         }
 
         await firebaseSignOut();

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import bellIcon from "../../assets/icons/icons8-notification-24.png";
 import frenchFlag from "../../assets/icons/icons8-french-flag-48.png";
@@ -18,6 +19,8 @@ const baseItems = [
 function TopBar() {
   const navigate = useNavigate();
   const { auth, signOut } = useAppData();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
   const canAccessAdmin = auth.role === "admin" || auth.role === "super_admin";
   const roleLabel =
     auth.role === "super_admin"
@@ -28,6 +31,19 @@ function TopBar() {
   const items = canAccessAdmin
     ? [...baseItems, { label: "Admin", path: "/dashboard/admin" }]
     : baseItems;
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    setSignOutError("");
+
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Could not sign out.", error);
+      setSignOutError("Unable to sign out. Please try again.");
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <header className="top-bar">
@@ -61,7 +77,14 @@ function TopBar() {
             <div>
               <strong>{auth.name}</strong>
               <div>{roleLabel}</div>
-              <button onClick={signOut}>Sign out</button>
+              <button type="button" onClick={handleSignOut} disabled={isSigningOut}>
+                {isSigningOut ? "Signing out..." : "Sign out"}
+              </button>
+              {signOutError ? (
+                <div className="top-bar__error" role="alert">
+                  {signOutError}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
