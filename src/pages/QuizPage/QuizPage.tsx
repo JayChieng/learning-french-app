@@ -383,24 +383,6 @@ const QuizPage = () => {
               ))}
             </div>
 
-            {selectedAnswer && (
-              <div
-                className={
-                  selectedAnswer === currentQuestion.options.find((option) => option.isCorrect)?.id
-                    ? "quiz-play__feedback quiz-play__feedback--correct"
-                    : "quiz-play__feedback quiz-play__feedback--wrong"
-                }
-              >
-                <h3>
-                  {selectedAnswer === currentQuestion.options.find((option) => option.isCorrect)?.id
-                    ? "Correct!"
-                    : "Incorrect!"}
-                </h3>
-                <p>
-                  Correct answer: {currentQuestion.options.find((option) => option.isCorrect)?.label}.
-                </p>
-              </div>
-            )}
           </div>
         )}
 

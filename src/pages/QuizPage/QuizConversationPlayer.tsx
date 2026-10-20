@@ -26,7 +26,6 @@ type Challenge = {
 };
 
 type Outcome = {
-  answer: string;
   correct: boolean;
   displayText: string;
 };
@@ -278,7 +277,6 @@ function QuizConversationSession({
     const correct = isCorrectAnswer(currentTurn, currentChallenge.blank, answer);
     playQuizAnswerSound(correct);
     setOutcome({
-      answer,
       correct,
       displayText: getCompletedLine(
         currentChallenge.blank,
@@ -447,21 +445,6 @@ function QuizConversationSession({
               </button>
             )}
 
-            {outcome && (
-              <div
-                aria-live="polite"
-                className={`quiz-conversation__feedback${
-                  outcome.correct ? " quiz-conversation__feedback--correct" : " quiz-conversation__feedback--wrong"
-                }`}
-              >
-                <strong>{outcome.correct ? "Correct!" : "Not quite."}</strong>
-                {!outcome.correct && (
-                  <span>
-                    Your answer: {outcome.answer}. Correct answer: {currentTurn.text}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
 
           <div className="quiz-conversation__footer">
