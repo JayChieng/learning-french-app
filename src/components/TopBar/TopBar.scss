@@ -3,7 +3,7 @@
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
   padding: 1rem 2rem;
@@ -20,6 +20,7 @@
   color: #223d69;
   font-size: clamp(1.4rem, 2vw, 2rem);
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .top-bar__brand img {
@@ -27,11 +28,16 @@
   height: 44px;
 }
 
+.top-bar__menu-scroll {
+  display: contents;
+}
+
 .top-bar__nav {
   display: flex;
   justify-content: center;
   gap: 0.35rem;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .top-bar__link {
@@ -39,6 +45,7 @@
   border-bottom: 4px solid transparent;
   color: #18212f;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .top-bar__link--active {
@@ -49,6 +56,7 @@
 .top-bar__actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.75rem;
 }
 
@@ -89,10 +97,69 @@
     grid-template-columns: 1fr;
     justify-items: center;
   }
+
+  .top-bar__actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 720px) {
   .top-bar {
     padding: 1rem;
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .top-bar__brand {
+    justify-content: center;
+  }
+
+  .top-bar__menu-scroll {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .top-bar__menu-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .top-bar__nav {
+    width: max-content;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  .top-bar__link {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .top-bar__actions {
+    width: max-content;
+    flex: 0 0 auto;
+    justify-content: center;
+    flex-wrap: nowrap;
+    padding: 0 0.75rem;
+  }
+
+  .top-bar__profile {
+    width: max-content;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    text-align: left;
+    white-space: nowrap;
   }
 }

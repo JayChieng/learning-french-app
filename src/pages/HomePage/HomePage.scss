@@ -168,6 +168,12 @@
 
   .home-page__nav {
     flex-direction: column;
+    text-align: center;
+  }
+
+  .home-page__links {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .home-page__hero,
@@ -178,5 +184,14 @@
   .home-page__hero,
   .home-page__features {
     padding: 1.5rem;
+  }
+
+  .home-page__actions {
+    flex-direction: column;
+  }
+
+  .home-page__primary,
+  .home-page__secondary {
+    width: 100%;
   }
 }

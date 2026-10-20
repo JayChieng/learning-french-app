@@ -1,13 +1,16 @@
 .app-layout {
   min-height: 100vh;
+  width: 100%;
 }
 
 .app-layout__main {
+  width: min(1380px, 100%);
+  margin: 0 auto;
   padding: 1.5rem 2rem 3rem;
 }
 
 @media (max-width: 720px) {
   .app-layout__main {
-    padding: 1rem;
+    padding: 1rem 0.75rem 2rem;
   }
 }

@@ -74,3 +74,19 @@
   font: inherit;
   font-weight: 700;
 }
+
+@media (max-width: 720px) {
+  .messages-page {
+    width: min(100%, calc(100% - 1rem));
+    margin: 1rem auto;
+  }
+
+  .messages-page__header,
+  .messages-empty {
+    padding: 1.25rem;
+  }
+
+  .message-card {
+    padding: 0.9rem 1rem;
+  }
+}

@@ -222,16 +222,37 @@
 }
 
 @media (max-width: 960px) {
+  .lesson-detail-page__section--focus {
+    width: 100%;
+    max-width: none;
+    padding: clamp(1rem, 3vw, 1.5rem);
+  }
+
   .lesson-detail-page__vocabulary-stage {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
   }
 
   .lesson-detail-page__word-card {
     order: -1;
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    min-height: clamp(360px, 62svh, 620px);
+    padding: clamp(1.5rem, 5vw, 3rem);
+  }
+
+  .lesson-detail-page__word-card--featured {
+    height: auto;
   }
 }
 
 @media (max-width: 720px) {
+  .lesson-detail-page__section--focus {
+    padding: 1rem;
+  }
+
   .lesson-detail-page__hero {
     flex-direction: column;
   }
@@ -244,5 +265,28 @@
   .lesson-detail-page__nav-button,
   .lesson-detail-page__word-button {
     flex: 1;
+  }
+
+  .lesson-detail-page__vocabulary-stage {
+    gap: 0.75rem;
+  }
+
+  .lesson-detail-page__word-button {
+    min-height: 56px;
+    padding: 0.9rem 0.75rem;
+    font-size: 1rem;
+  }
+
+  .lesson-detail-page__word-card {
+    min-height: clamp(360px, 62svh, 620px);
+    border-radius: 22px;
+  }
+
+  .lesson-detail-page__word-card strong {
+    font-size: clamp(2rem, 9vw, 3.5rem);
+  }
+
+  .lesson-detail-page__word-card p {
+    font-size: clamp(1.25rem, 5vw, 1.8rem);
   }
 }

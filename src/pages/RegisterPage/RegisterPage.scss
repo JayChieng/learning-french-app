@@ -111,3 +111,26 @@
   font-size: 0.95rem;
   color: #c62828;
 }
+
+@media (max-width: 720px) {
+  .register-page__brand {
+    padding: 1rem;
+  }
+
+  .register-page__wrapper {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .register-page__card {
+    padding: 1.25rem;
+  }
+
+  .register-page__heading h1 {
+    font-size: clamp(2rem, 12vw, 2.8rem);
+  }
+
+  .register-page__submit,
+  .register-page__google {
+    font-size: 0.95rem;
+  }
+}

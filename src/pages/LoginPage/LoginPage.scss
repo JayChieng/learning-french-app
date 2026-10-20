@@ -111,3 +111,26 @@
   font-size: 0.95rem;
   color: #c62828;
 }
+
+@media (max-width: 720px) {
+  .login-page__brand {
+    padding: 1rem;
+  }
+
+  .login-page__wrapper {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .login-page__card {
+    padding: 1.25rem;
+  }
+
+  .login-page__heading h1 {
+    font-size: clamp(2rem, 12vw, 2.8rem);
+  }
+
+  .login-page__submit,
+  .login-page__google {
+    font-size: 0.95rem;
+  }
+}
