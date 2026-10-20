@@ -95,14 +95,51 @@ export type QuizOption = {
   id: string;
   label: string;
   isCorrect: boolean;
+  translation?: string;
 };
 
 export type QuizQuestion = {
   id: string;
   category: string;
   prompt: string;
+  promptFrenchTerm?: string;
+  promptTranslation?: string;
+  speechSegments?: QuizSpeechSegment[];
+  dialogue?: QuizDialogueLine[];
   explanation: string;
   options: QuizOption[];
+};
+
+export type QuizSpeechSegment = {
+  text: string;
+  lang: "en-US" | "fr-FR";
+};
+
+export type QuizDialogueLine = {
+  speaker: "A" | "B";
+  text: string;
+  blank?: boolean;
+  suffix?: string;
+  translation?: string;
+};
+
+export type QuizConversationLine = {
+  speaker: "A" | "B";
+  text: string;
+  translation: string;
+  sourceVocabularyIds: string[];
+  blankCandidates?: string[];
+  answerRule?: "age";
+};
+
+export type QuizConversationPair = {
+  question: QuizConversationLine;
+  answer: QuizConversationLine;
+  fixedSpeakers?: boolean;
+};
+
+export type QuizConversation = {
+  pairs: QuizConversationPair[];
 };
 
 export type QuizTopicResult = {
@@ -117,6 +154,7 @@ export type QuizTopic = {
   title: string;
   description: string;
   questions: QuizQuestion[];
+  conversation?: QuizConversation;
 };
 
 export type Tip = {
@@ -143,6 +181,34 @@ export type ActivityEntry = {
 };
 
 export type UserRole = "user" | "admin" | "super_admin";
+
+export type AdminContentCollection = "lessons" | "lessonDetails" | "vocabulary" | "quizzes";
+
+export type AdminContentDocument = {
+  id: string;
+  data: Record<string, unknown>;
+};
+
+export type AdminUserProfile = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  disabled: boolean;
+  createdAt?: unknown;
+  activities?: ActivityEntry[];
+  weeklyActivity?: number[];
+  quizResults?: Record<string, QuizTopicResult>;
+  completedLessonIds?: string[];
+};
+
+export type UserMessage = {
+  id: string;
+  body: string;
+  senderName: string;
+  createdAt?: unknown;
+  isRead: boolean;
+};
 
 export type AuthState = {
   isLoggedIn: boolean;

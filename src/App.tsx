@@ -13,6 +13,7 @@ import RegisterPage from "./pages/RegisterPage/RegisterPage";
 import TipsPage from "./pages/TipsPage/TipsPage";
 import VocabularyPage from "./pages/VocabularyPage/VocabularyPage";
 import AdminPage from "./pages/AdminPage/AdminPage";
+import MessagesPage from "./pages/MessagesPage/MessagesPage";
 import "./App.scss";
 
 function App() {
@@ -72,6 +73,7 @@ function App() {
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="quiz" element={<QuizPage />} />
           <Route path="progress" element={<ProgressPage />} />
+          <Route path="messages" element={<MessagesPage />} />
           <Route path="tips" element={<TipsPage />} />
           <Route
             path="admin"

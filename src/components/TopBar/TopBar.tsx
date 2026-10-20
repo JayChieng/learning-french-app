@@ -11,6 +11,7 @@ const baseItems = [
   { label: "Vocabulary", path: "/dashboard/vocabulary" },
   { label: "Quiz", path: "/dashboard/quiz" },
   { label: "Progress", path: "/dashboard/progress" },
+  { label: "Messages", path: "/dashboard/messages" },
   { label: "Tips & Resources", path: "/dashboard/tips" },
 ];
 

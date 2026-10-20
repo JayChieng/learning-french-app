@@ -15,11 +15,16 @@ import {
 import {
   collection,
   doc,
+  addDoc,
+  deleteDoc,
+  deleteField,
   getDoc,
   getDocs,
   getFirestore,
+  onSnapshot,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import lessonIcon from "../assets/icons/icons8-lesson-64.png";
 import breadIcon from "../assets/icons/icons8-bread-100.png";
@@ -30,11 +35,15 @@ import volumeIcon from "../assets/icons/icons8-volume-48.png";
 import wordReferenceIcon from "../assets/icons/icons8-wordreference-100.png";
 import type {
   ActivityEntry,
+  AdminContentCollection,
+  AdminContentDocument,
+  AdminUserProfile,
   AppState,
   Lesson,
   LessonDetail,
   QuizTopicResult,
   UserRole,
+  UserMessage,
   VocabularyWord,
 } from "../types/app";
 import type { QuizTopic } from "../types/app";
@@ -121,6 +130,11 @@ export async function firebaseSignIn(email: string, password: string) {
     email: result.user.email,
   });
 
+  if (await isAccountAccessBlocked(result.user.uid)) {
+    await firebaseSignOut();
+    throw new Error("This account is blocked from using the app. Contact an administrator.");
+  }
+
   return result.user;
 }
 
@@ -136,6 +150,11 @@ export async function firebaseGoogleSignIn() {
     email: result.user.email,
   });
 
+  if (await isAccountAccessBlocked(result.user.uid)) {
+    await firebaseSignOut();
+    throw new Error("This account is blocked from using the app. Contact an administrator.");
+  }
+
   return result.user;
 }
 
@@ -145,6 +164,23 @@ export async function firebaseSignOut() {
 
 export function subscribeToAuth(callback: (user: User | null) => void) {
   return onAuthStateChanged(auth, callback);
+}
+
+export async function isAccountAccessBlocked(uid: string) {
+  const snapshot = await getDoc(doc(firestore, "users", uid));
+  return snapshot.exists() && snapshot.data().disabled === true;
+}
+
+export function subscribeToAccountAccess(
+  uid: string,
+  onBlocked: (blocked: boolean) => void,
+  onError: (error: Error) => void
+) {
+  return onSnapshot(
+    doc(firestore, "users", uid),
+    (snapshot) => onBlocked(snapshot.exists() && snapshot.data().disabled === true),
+    onError
+  );
 }
 
 export async function readRemoteAppState(
@@ -227,6 +263,117 @@ export async function getAdminDashboardStats() {
     quizzes: quizzesSnapshot.size,
     users: usersSnapshot.size,
   };
+}
+
+export async function getAdminUsers(): Promise<AdminUserProfile[]> {
+  const snapshot = await getDocs(collection(firestore, "users"));
+  return snapshot.docs
+    .map((userSnapshot) => {
+      const data = userSnapshot.data();
+      return {
+        id: userSnapshot.id,
+        name: typeof data.name === "string" ? data.name : "User",
+        email: typeof data.email === "string" ? data.email : "",
+        role: data.role === "admin" || data.role === "super_admin" ? data.role : "user",
+        disabled: data.disabled === true,
+        createdAt: data.createdAt,
+        activities: Array.isArray(data.activities) ? data.activities : [],
+        weeklyActivity: Array.isArray(data.weeklyActivity) ? data.weeklyActivity : [],
+        quizResults:
+          data.quizResults && typeof data.quizResults === "object" ? data.quizResults : {},
+        completedLessonIds: Array.isArray(data.completedLessonIds) ? data.completedLessonIds : [],
+      };
+    })
+    .sort((first, second) => first.name.localeCompare(second.name));
+}
+
+export async function getAdminContentDocuments(
+  collectionName: AdminContentCollection
+): Promise<AdminContentDocument[]> {
+  const snapshot = await getDocs(collection(firestore, collectionName));
+  return snapshot.docs.map((documentSnapshot) => ({
+    id: documentSnapshot.id,
+    data: documentSnapshot.data(),
+  }));
+}
+
+export async function saveAdminContentDocument(
+  collectionName: AdminContentCollection,
+  id: string,
+  data: Record<string, unknown>,
+  isNew: boolean
+) {
+  if (!id.trim()) {
+    throw new Error("A document ID is required.");
+  }
+
+  const documentRef = doc(firestore, collectionName, id.trim());
+  if (isNew && (await getDoc(documentRef)).exists()) {
+    throw new Error(`A ${collectionName} document with ID "${id}" already exists.`);
+  }
+
+  await setDoc(documentRef, data);
+}
+
+export async function deleteAdminContentDocument(
+  collectionName: AdminContentCollection,
+  id: string
+) {
+  await deleteDoc(doc(firestore, collectionName, id));
+}
+
+export async function setAdminAccountAppAccess(uid: string, blocked: boolean) {
+  await updateDoc(doc(firestore, "users", uid), {
+    disabled: blocked,
+    disabledAt: blocked ? serverTimestamp() : deleteField(),
+  });
+}
+
+export async function sendAdminMessage(uid: string, body: string) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("You must be signed in to send a message.");
+  }
+
+  await addDoc(collection(firestore, "users", uid, "messages"), {
+    body: body.trim(),
+    senderId: currentUser.uid,
+    senderName: (currentUser.displayName ?? currentUser.email ?? "Admin").slice(0, 120),
+    createdAt: serverTimestamp(),
+    isRead: false,
+  });
+}
+
+export async function getCurrentUserId() {
+  return auth.currentUser?.uid ?? null;
+}
+
+export async function getUserMessages(uid: string): Promise<UserMessage[]> {
+  const snapshot = await getDocs(collection(firestore, "users", uid, "messages"));
+  return snapshot.docs
+    .map((messageSnapshot) => {
+      const data = messageSnapshot.data();
+      return {
+        id: messageSnapshot.id,
+        body: typeof data.body === "string" ? data.body : "",
+        senderName: typeof data.senderName === "string" ? data.senderName : "Admin",
+        createdAt: data.createdAt,
+        isRead: data.isRead === true,
+      };
+    })
+    .sort((first, second) => getMessageTime(second.createdAt) - getMessageTime(first.createdAt));
+}
+
+export async function markUserMessageRead(uid: string, messageId: string) {
+  await updateDoc(doc(firestore, "users", uid, "messages", messageId), { isRead: true });
+}
+
+function getMessageTime(value: unknown) {
+  if (value && typeof value === "object" && "toMillis" in value) {
+    const toMillis = value.toMillis;
+    if (typeof toMillis === "function") return toMillis.call(value) as number;
+  }
+  return 0;
 }
 
 export async function getLessonsFromFirestore(
@@ -344,6 +491,7 @@ export async function getQuizzesFromFirestore(): Promise<QuizTopic[]> {
       title: string;
       description: string;
       questions: QuizTopic["questions"];
+      conversation?: QuizTopic["conversation"];
     };
 
     return {
@@ -351,10 +499,16 @@ export async function getQuizzesFromFirestore(): Promise<QuizTopic[]> {
       title: data.title,
       description: data.description,
       questions: data.questions ?? [],
+      ...(data.conversation ? { conversation: data.conversation } : {}),
     } satisfies QuizTopic;
   });
 
-  return quizzes;
+  return quizzes.sort((first, second) => {
+    const firstNumber = Number(first.id.match(/^quiz-(\d+)$/i)?.[1] ?? Number.MAX_SAFE_INTEGER);
+    const secondNumber = Number(second.id.match(/^quiz-(\d+)$/i)?.[1] ?? Number.MAX_SAFE_INTEGER);
+
+    return firstNumber - secondNumber || first.title.localeCompare(second.title);
+  });
 }
 
 function getVocabularyIcon(category: string) {

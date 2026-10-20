@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const [, , uid, rawRole] = process.argv;
 
@@ -40,6 +41,15 @@ const claims = {
 
 getAuth()
   .setCustomUserClaims(uid, claims)
+  .then(() => {
+    return getFirestore().collection('users').doc(uid).get();
+  })
+  .then((profile) => {
+    if (profile.exists) {
+      return profile.ref.update({ role });
+    }
+    return undefined;
+  })
   .then(() => {
     console.log(`Role claim set to ${role} for ${uid}`);
   })

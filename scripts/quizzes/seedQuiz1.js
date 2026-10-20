@@ -3,6 +3,7 @@ import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createQuestionSpeechSegments } from "./quizSpeech.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -148,8 +149,18 @@ async function seedQuizOne() {
     .collection("vocabulary")
     .where("lessonId", "==", lessonId)
     .get();
+  const allVocabularySnapshot = await db.collection("vocabulary").get();
 
   const lessonVocabularyIds = new Set(vocabularySnapshot.docs.map((document) => document.id));
+  const lessonVocabulary = new Map(
+    vocabularySnapshot.docs.map((document) => [document.id, document.data()])
+  );
+  const frenchMeanings = new Map(
+    allVocabularySnapshot.docs.map((document) => [
+      document.data().french.trim().toLocaleLowerCase(),
+      document.data().english,
+    ])
+  );
   const questionVocabularyIds = quizQuestionContent.map((question) => question.vocabularyId);
   const uniqueQuestionVocabularyIds = new Set(questionVocabularyIds);
   const hasOneQuestionPerWord =
@@ -164,18 +175,36 @@ async function seedQuizOne() {
     );
   }
 
-  const questions = shuffleItems(quizQuestionContent).map(
-    ({ vocabularyId: _vocabularyId, ...question }, index) => ({
+  const questions = shuffleItems(quizQuestionContent).map(({ vocabularyId, ...question }, index) => {
+    const vocabulary = lessonVocabulary.get(vocabularyId);
+    const spokenTerm = question.prompt.match(/^What does ["'](.+?)["'] mean\?$/i)?.[1];
+    const promptFrenchTerm = spokenTerm &&
+      vocabulary.french.trim().toLocaleLowerCase().includes(spokenTerm.trim().toLocaleLowerCase())
+      ? spokenTerm
+      : undefined;
+
+    return {
       ...question,
       id: `question-${index + 1}`,
       category: "Greetings",
+      ...(promptFrenchTerm
+        ? { promptFrenchTerm, promptTranslation: vocabulary.english }
+        : {}),
+      speechSegments: createQuestionSpeechSegments(
+        question.prompt,
+        vocabulary
+      ),
       explanation: `Correct answer: ${question.options.find((option) => option.isCorrect)?.label}`,
-      options: shuffleItems(question.options).map((option, optionIndex) => ({
-        ...option,
-        id: `option-${optionIndex + 1}`,
-      })),
-    })
-  );
+      options: shuffleItems(question.options).map((option, optionIndex) => {
+        const translation = frenchMeanings.get(option.label.trim().toLocaleLowerCase());
+        return {
+          ...option,
+          id: `option-${optionIndex + 1}`,
+          ...(translation ? { translation } : {}),
+        };
+      }),
+    };
+  });
 
   await db.collection("quizzes").doc("quiz-1").set({
     title: "Quiz 1: Greetings",

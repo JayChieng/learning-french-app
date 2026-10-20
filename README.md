@@ -1,5 +1,21 @@
 # React + TypeScript + Vite
 
+## Admin tools
+
+Admins can manage member profiles and learning content at `/dashboard/admin`. Content documents are edited as JSON so nested lesson dialogues, quiz questions, and conversation quizzes can be maintained without dropping fields. Members can receive and read in-app messages from the admin panel.
+
+On the current Firebase Spark plan, admins can block a member's access to the app. The app checks this status at sign-in and while the member is signed in, then signs them out when access is blocked. This does not disable the Firebase Authentication account itself.
+
+To disable the Firebase Authentication account itself, upgrade the project to Firebase Blaze, then deploy the included callable function and Firestore rules:
+
+```sh
+firebase deploy --only functions:setAccountDisabled,firestore:rules
+```
+
+Cloud Functions may incur charges on the Blaze plan. The Firebase project alias is in `.firebaserc`. Admin pages require the `admin` or `super_admin` custom claim.
+
+When assigning an admin role with `node scripts/setAdminClaim.js <uid> [admin|super_admin|user]`, the script synchronizes the role claim and an existing Firestore member profile.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

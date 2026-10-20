@@ -18,7 +18,9 @@ import {
   getLessonDetailsFromFirestore,
   getLessonsFromFirestore,
   getVocabularyFromFirestore,
+  isAccountAccessBlocked,
   subscribeToAuth,
+  subscribeToAccountAccess,
 } from "../services/firebase";
 import type {
   ActivityEntry,
@@ -85,6 +87,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = subscribeToAuth((user) => {
       const syncAuthState = async () => {
+        if (user && (await isAccountAccessBlocked(user.uid))) {
+          await firebaseSignOut();
+          return;
+        }
+
         const role = user ? await getUserRole(user) : "user";
 
         if (user) {
@@ -114,11 +121,47 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setAuthReady(true);
       };
 
-      void syncAuthState();
+      void syncAuthState().catch(async (error: unknown) => {
+        console.error("Could not verify account access.", error);
+        setUserId(undefined);
+        setState((current) => ({
+          ...current,
+          auth: {
+            isLoggedIn: false,
+            email: "",
+            name: "",
+            role: "user",
+          },
+        }));
+        setAuthReady(true);
+        if (user) {
+          await firebaseSignOut().catch((signOutError: unknown) => {
+            console.error("Could not sign out after account access verification failed.", signOutError);
+          });
+        }
+      });
     });
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    return subscribeToAccountAccess(
+      userId,
+      (blocked) => {
+        if (blocked) {
+          void firebaseSignOut().catch((error: unknown) => {
+            console.error("Could not sign out blocked account.", error);
+          });
+        }
+      },
+      (error) => {
+        console.error("Could not watch account access status.", error);
+      }
+    );
+  }, [userId]);
 
   useEffect(() => {
     if (!authReady) {
@@ -131,10 +174,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const requestId = hydrateRequestIdRef.current + 1;
     hydrateRequestIdRef.current = requestId;
 
-    setHasHydrated(false);
-    setHydratedForUserId(null);
-
     const run = async () => {
+      setHasHydrated(false);
+      setHydratedForUserId(null);
       const baseState = buildBaseState();
 
       if (!userId) {
@@ -408,7 +450,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }));
       },
 
-      pronounceWord: (word: VocabularyWord, rate = 1) => {
+      pronounceWord: (word: VocabularyWord, rate = 0.75) => {
         if ("speechSynthesis" in window) {
           const utterance = new SpeechSynthesisUtterance(word.french);
           utterance.lang = "fr-FR";
@@ -427,7 +469,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         streakDays: calculateStreak(state.weeklyActivity),
       },
     };
-  }, [state, authReady]);
+  }, [state, authReady, userId]);
 
   return (
     <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>

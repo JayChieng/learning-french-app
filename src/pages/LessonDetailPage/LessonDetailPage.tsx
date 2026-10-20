@@ -38,7 +38,7 @@ function LessonDetailPage() {
 
   const handlePronounceWord = (word: VocabularyWord) => {
     const rate = nextPronunciationRate.current.get(word.id) ?? 0.5;
-    nextPronunciationRate.current.set(word.id, rate === 0.5 ? 1 : 0.5);
+    nextPronunciationRate.current.set(word.id, rate === 0.5 ? 0.75 : 0.5);
     pronounceWord(word, rate);
   };
 

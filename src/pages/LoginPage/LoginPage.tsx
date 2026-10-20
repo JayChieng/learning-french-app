@@ -27,7 +27,11 @@ function LoginPage() {
       setPassword("");
       navigate("/dashboard");
     } catch (err) {
-      setError("Login failed. Please check your email and password.");
+      setError(
+        err instanceof Error && err.message.startsWith("This account is blocked")
+          ? err.message
+          : "Login failed. Please check your email and password."
+      );
       console.error(err);
     }
   };
@@ -38,7 +42,11 @@ function LoginPage() {
       await signInWithGoogle();
       navigate("/dashboard");
     } catch (err) {
-      setError("Google login failed. Please try again.");
+      setError(
+        err instanceof Error && err.message.startsWith("This account is blocked")
+          ? err.message
+          : "Google login failed. Please try again."
+      );
       console.error(err);
     }
   };

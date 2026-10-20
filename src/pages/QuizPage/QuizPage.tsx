@@ -3,6 +3,12 @@ import "./QuizPage.scss";
 import type { QuizTopic } from "../../types/app";
 import { useAppData } from "../../context/AppDataContext";
 import { getQuizzesFromFirestore } from "../../services/firebase";
+import {
+  playQuizAnswerSound,
+  speakQuizPrompt,
+  stopQuizPrompt,
+} from "../../services/quizAudio";
+import QuizConversationPlayer from "./QuizConversationPlayer";
 
 type AnswerMap = Record<number, string>;
 
@@ -54,6 +60,13 @@ const QuizPage = () => {
   const currentQuestion = selectedQuiz?.questions[currentQuestionIndex] ?? null;
   const selectedAnswer = answers[currentQuestionIndex] ?? null;
 
+  useEffect(() => {
+    if (!selectedQuizId || !currentQuestion || isFinished) return;
+
+    speakQuizPrompt(currentQuestion);
+    return stopQuizPrompt;
+  }, [currentQuestion, isFinished, selectedQuizId]);
+
   const correctCount = useMemo(() => {
     if (!selectedQuiz) return 0;
 
@@ -83,6 +96,10 @@ const QuizPage = () => {
 
   const handleAnswerSelect = (answer: string) => {
     if (!currentQuestion || !selectedQuiz || selectedAnswer) return;
+
+    const isCorrect = currentQuestion.options.find((option) => option.id === answer)?.isCorrect;
+    stopQuizPrompt();
+    playQuizAnswerSound(isCorrect === true);
 
     setAnswers((prev) => ({
       ...prev,
@@ -167,7 +184,7 @@ const QuizPage = () => {
           <p className="quiz-page__breadcrumb">Home &gt; Quiz</p>
           <h1 className="quiz-page__title">Quiz</h1>
           <p className="quiz-page__subtitle">
-            Choose a vocabulary topic and complete a 5-question quiz.
+            Choose a quiz and practise vocabulary or complete a conversation.
           </p>
         </div>
 
@@ -178,13 +195,19 @@ const QuizPage = () => {
             return (
               <article key={quiz.id} className="quiz-card">
                 <div className="quiz-card__content">
-                  <span className="quiz-card__badge">Vocabulary Quiz</span>
+                  <span className="quiz-card__badge">
+                    {quiz.conversation ? "Conversation Quiz" : "Vocabulary Quiz"}
+                  </span>
 
                   <h2 className="quiz-card__title">{quiz.title}</h2>
                   <p className="quiz-card__description">{quiz.description}</p>
 
                   <div className="quiz-card__meta">
-                    <span>{quiz.questions.length} questions</span>
+                    <span>
+                      {quiz.conversation
+                        ? `${quiz.conversation.pairs.length * 2} dialogue lines`
+                        : `${quiz.questions.length} questions`}
+                    </span>
 
                     {quizResult?.completed ? (
                       <span className="quiz-card__score">
@@ -208,6 +231,17 @@ const QuizPage = () => {
           })}
         </div>
       </section>
+    );
+  }
+
+  if (selectedQuiz.conversation) {
+    return (
+      <QuizConversationPlayer
+        key={selectedQuiz.id}
+        quiz={selectedQuiz}
+        allQuizzes={quizTopics}
+        onExit={goBackToQuizList}
+      />
     );
   }
 
@@ -286,7 +320,53 @@ const QuizPage = () => {
 
         {currentQuestion && (
           <div className="quiz-play__card">
-            <h2 className="quiz-play__question">{currentQuestion.prompt}</h2>
+            <h2 className="quiz-play__question">
+              {currentQuestion.promptFrenchTerm ? (
+                <>
+                  {currentQuestion.prompt.split(currentQuestion.promptFrenchTerm)[0]}
+                  <span
+                    className="quiz-play__translation-term"
+                    title={currentQuestion.promptTranslation}
+                  >
+                    {currentQuestion.promptFrenchTerm}
+                  </span>
+                  {currentQuestion.prompt.split(currentQuestion.promptFrenchTerm).slice(1).join(currentQuestion.promptFrenchTerm)}
+                </>
+              ) : (
+                currentQuestion.prompt
+              )}
+            </h2>
+
+            {currentQuestion.dialogue && (
+              <div className="quiz-play__dialogue" aria-label="Dialogue">
+                {currentQuestion.dialogue.map((line, index) => {
+                  const selectedOption = currentQuestion.options.find(
+                    (option) => option.id === selectedAnswer
+                  );
+
+                  return (
+                    <div
+                      key={`${line.speaker}-${index}`}
+                      className={`quiz-play__dialogue-line quiz-play__dialogue-line--${line.speaker.toLowerCase()}`}
+                    >
+                      <span className="quiz-play__dialogue-speaker">{line.speaker}</span>
+                      <p className="quiz-play__dialogue-bubble" title={line.translation}>
+                        {line.text}
+                        {line.blank && (
+                          <span
+                            className="quiz-play__dialogue-blank"
+                            title={selectedOption?.translation}
+                          >
+                            {selectedOption?.label ?? "................"}
+                          </span>
+                        )}
+                        {line.suffix}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="quiz-play__options">
               {currentQuestion.options.map((option) => (
@@ -298,7 +378,7 @@ const QuizPage = () => {
                   disabled={!!selectedAnswer}
                 >
                   <span className="quiz-play__radio" />
-                  <span>{option.label}</span>
+                  <span title={option.translation}>{option.label}</span>
                 </button>
               ))}
             </div>
