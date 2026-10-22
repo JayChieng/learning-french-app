@@ -12,6 +12,7 @@ service cloud.firestore {
 
   function isAccountEnabled(userId) {
     return !exists(/databases/(default)/documents/users/$(userId))
+      || !('disabled' in get(/databases/(default)/documents/users/$(userId)).data)
       || get(/databases/(default)/documents/users/$(userId)).data.disabled != true;
   }
 

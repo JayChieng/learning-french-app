@@ -69,9 +69,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     stateRef.current = state;
   }, [state]);
 
-  const loadLearningContent = async (completedLessonIds: string[] = []) => {
+  const loadLearningContent = async (completedLessonIds?: string[]) => {
+    const ids = completedLessonIds ?? stateRef.current.lessons
+      .filter((lesson) => lesson.status === "completed")
+      .map((lesson) => lesson.id);
     const [lessons, lessonDetails, vocabulary] = await Promise.all([
-      getLessonsFromFirestore(completedLessonIds),
+      getLessonsFromFirestore(ids),
       getLessonDetailsFromFirestore(),
       getVocabularyFromFirestore(),
     ]);
@@ -237,12 +240,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setState((current) => ({
-        ...buildBaseState(),
-        auth: current.auth,
-      }));
-      setHydratedForUserId(userId ?? '__guest__');
-      setHasHydrated(true);
+      // Keep sync disabled when hydration fails. Writing this fallback state
+      // would replace saved progress with empty arrays on the next render.
+      setState((current) => ({ ...buildBaseState(), auth: current.auth }));
     });
   }, [userId, authReady]);
 

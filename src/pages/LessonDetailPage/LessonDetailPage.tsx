@@ -14,27 +14,29 @@ function LessonDetailPage() {
   const lesson = lessons.find((item) => item.id === lessonId);
   const detail = lessonId ? getLessonDetailById(lessonId) : undefined;
 
-  const [activeWordIndex, setActiveWordIndex] = useState(0);
-
-  useEffect(() => {
-    setActiveWordIndex(0);
-  }, [lessonId]);
-
-  if (!lesson || !detail) {
-    return <Navigate to="/dashboard/lessons" replace />;
-  }
-
-  const currentLessonIndex = lessons.findIndex((item) => item.id === lesson.id);
+  const [wordProgress, setWordProgress] = useState({ lessonId: "", index: 0 });
+  const activeWordIndex =
+    wordProgress.lessonId === lessonId ? wordProgress.index : 0;
+  const currentLessonIndex = lessons.findIndex((item) => item.id === lesson?.id);
   const previousLesson = currentLessonIndex > 0 ? lessons[currentLessonIndex - 1] : undefined;
   const nextLesson =
     currentLessonIndex >= 0 && currentLessonIndex < lessons.length - 1
       ? lessons[currentLessonIndex + 1]
       : undefined;
 
-  const wordCount = detail.vocabulary.length;
+  const wordCount = detail?.vocabulary.length ?? 0;
   const safeWordIndex = wordCount === 0 ? 0 : Math.min(activeWordIndex, wordCount - 1);
-  const currentWord = wordCount === 0 ? undefined : detail.vocabulary[safeWordIndex];
+  const currentWord = wordCount === 0 ? undefined : detail?.vocabulary[safeWordIndex];
   const isLastWord = wordCount > 0 && safeWordIndex === wordCount - 1;
+  const setActiveWordIndex = (update: (index: number) => number) => {
+    setWordProgress((current) => {
+      const currentIndex = current.lessonId === lessonId ? current.index : 0;
+      return {
+        lessonId: lessonId ?? "",
+        index: update(currentIndex),
+      };
+    });
+  };
 
   const handlePronounceWord = (word: VocabularyWord) => {
     const rate = nextPronunciationRate.current.get(word.id) ?? 0.5;
@@ -54,14 +56,9 @@ function LessonDetailPage() {
     return () => window.clearTimeout(timer);
   }, [currentWord, pronounceWord]);
 
-  useEffect(() => {
-    if (wordCount === 0) {
-      setActiveWordIndex(0);
-      return;
-    }
-
-    setActiveWordIndex((currentIndex) => Math.min(currentIndex, wordCount - 1));
-  }, [wordCount]);
+  if (!lesson || !detail) {
+    return <Navigate to="/dashboard/lessons" replace />;
+  }
 
   const handlePreviousLesson = () => {
     if (previousLesson) {
@@ -195,6 +192,46 @@ function LessonDetailPage() {
             </div>
           )}
         </section>
+
+        {detail.dialogues.length > 0 ? (
+          <section className="lesson-detail-page__section">
+            <h2>Dialogue</h2>
+            {detail.dialogues.map((dialogue) => (
+              <article className="lesson-detail-page__dialogue" key={dialogue.id}>
+                <h3>{dialogue.title}</h3>
+                <div className="lesson-detail-page__lines">
+                  {dialogue.lines.map((line, index) => (
+                    <div
+                      className="lesson-detail-page__line"
+                      key={`${dialogue.id}-${index}`}
+                    >
+                      <strong>{line.speaker}</strong>
+                      <p className="lesson-detail-page__french">{line.french}</p>
+                      <p className="lesson-detail-page__english">{line.english}</p>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </section>
+        ) : null}
+
+        {detail.explanations.length > 0 ? (
+          <section className="lesson-detail-page__section">
+            <h2>Explain</h2>
+            <div className="lesson-detail-page__explanations">
+              {detail.explanations.map((explanation) => (
+                <article
+                  className="lesson-detail-page__explanation-card"
+                  key={explanation.id}
+                >
+                  <h3>{explanation.title}</h3>
+                  <p>{explanation.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
     </section>
   );

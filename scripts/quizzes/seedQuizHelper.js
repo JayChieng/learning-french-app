@@ -178,7 +178,13 @@ export async function seedCustomQuiz({
   console.log(`${title} seeded with ${questions.length} custom questions for ${lessonIds.join(", ")}.`);
 }
 
-export async function seedConversationQuiz({ quizId, title, description, conversation }) {
+export async function seedConversationQuiz({
+  quizId,
+  legacyQuizIds = [],
+  title,
+  description,
+  conversation,
+}) {
   if (!Array.isArray(conversation?.pairs) || conversation.pairs.length !== 10) {
     throw new Error(`${title} must contain exactly 10 conversation pairs.`);
   }
@@ -215,6 +221,12 @@ export async function seedConversationQuiz({ quizId, title, description, convers
     description,
     conversation,
   });
+
+  await Promise.all(
+    legacyQuizIds
+      .filter((legacyQuizId) => legacyQuizId !== quizId)
+      .map((legacyQuizId) => db.collection("quizzes").doc(legacyQuizId).delete())
+  );
 
   console.log(`${title} seeded with ${turns.length} conversation lines.`);
 }

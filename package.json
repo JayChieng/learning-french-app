@@ -40,7 +40,14 @@
     "seed:quiz31": "node scripts/quizzes/seedQuiz31.js",
     "seed:quiz32": "node scripts/quizzes/seedQuiz32.js",
     "seed:quiz33": "node scripts/quizzes/seedQuiz33.js",
-    "seed:quiz-week-1": "node scripts/quizzes/seedQuizWeek1.js",
+    "seed:quiz34": "node scripts/quizzes/seedQuiz34.js",
+    "seed:quiz35": "node scripts/quizzes/seedQuiz35.js",
+    "seed:quiz36": "node scripts/quizzes/seedQuiz36.js",
+    "seed:lesson34": "node scripts/lessons/seedLesson34.js",
+    "seed:lesson35": "node scripts/lessons/seedLesson35.js",
+    "seed:lesson36": "node scripts/lessons/seedLesson36.js",
+    "seed:lesson37": "node scripts/lessons/seedLesson37.js",
+    "seed:quiz33.5": "node scripts/quizzes/seedQuizWeek1.js",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -9,6 +9,10 @@ type PersistedUserState = {
   completedLessonIds?: string[];
 };
 
+// Keep writes for each account in order. Firestore requests can otherwise
+// finish out of order and let an older snapshot replace newer progress.
+const syncQueues = new Map<string, Promise<void>>();
+
 export async function hydrateAppState(
   userId?: string
 ): Promise<PersistedUserState | null> {
@@ -27,7 +31,20 @@ export async function syncAppState(
     return;
   }
 
-  await writeRemoteAppState(userId, state);
+  const previousWrite = syncQueues.get(userId) ?? Promise.resolve();
+  const nextWrite = previousWrite
+    .catch(() => undefined)
+    .then(() => writeRemoteAppState(userId, state));
+
+  syncQueues.set(userId, nextWrite);
+
+  try {
+    await nextWrite;
+  } finally {
+    if (syncQueues.get(userId) === nextWrite) {
+      syncQueues.delete(userId);
+    }
+  }
 }
 
 export function buildBaseState(): AppState {

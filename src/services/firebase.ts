@@ -22,6 +22,7 @@ import {
   getDocs,
   getFirestore,
   onSnapshot,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -198,17 +199,36 @@ export async function writeRemoteAppState(
     .filter((lesson) => lesson.status === "completed")
     .map((lesson) => lesson.id);
 
-  await setDoc(
-    doc(firestore, "users", userId),
-    {
+  const userRef = doc(firestore, "users", userId);
+  await runTransaction(firestore, async (transaction) => {
+    const snapshot = await transaction.get(userRef);
+    const savedData = snapshot.data() as PersistedUserState | undefined;
+    const mergedQuizResults = { ...(savedData?.quizResults ?? {}) };
+
+    for (const [quizId, result] of Object.entries(state.quizResults)) {
+      const savedResult = mergedQuizResults[quizId];
+      if (!savedResult || result.updatedAt >= savedResult.updatedAt) {
+        mergedQuizResults[quizId] = result;
+      }
+    }
+
+    // update() replaces whole top-level fields (e.g. `quiz`), so stale legacy
+    // keys inside the saved map cannot fail the rules' strict key validation.
+    transaction.update(userRef, {
       activities: state.activities,
       weeklyActivity: state.weeklyActivity,
-      quiz: state.quiz,
-      quizResults: state.quizResults,
-      completedLessonIds,
-    },
-    { merge: true }
-  );
+      quiz: {
+        currentQuestionIndex: state.quiz.currentQuestionIndex,
+        answeredQuestionIds: state.quiz.answeredQuestionIds,
+        correctAnswers: state.quiz.correctAnswers,
+        attempts: state.quiz.attempts,
+      },
+      quizResults: mergedQuizResults,
+      completedLessonIds: Array.from(
+        new Set([...(savedData?.completedLessonIds ?? []), ...completedLessonIds])
+      ),
+    });
+  });
 }
 
 // Seed helper removed for production usage. Use Firestore console or admin scripts to populate initial data.
@@ -504,8 +524,12 @@ export async function getQuizzesFromFirestore(): Promise<QuizTopic[]> {
   });
 
   return quizzes.sort((first, second) => {
-    const firstNumber = Number(first.id.match(/^quiz-(\d+)$/i)?.[1] ?? Number.MAX_SAFE_INTEGER);
-    const secondNumber = Number(second.id.match(/^quiz-(\d+)$/i)?.[1] ?? Number.MAX_SAFE_INTEGER);
+    const firstNumber = Number(
+      first.id.match(/^quiz-(\d+(?:\.\d+)?)$/i)?.[1] ?? Number.MAX_SAFE_INTEGER
+    );
+    const secondNumber = Number(
+      second.id.match(/^quiz-(\d+(?:\.\d+)?)$/i)?.[1] ?? Number.MAX_SAFE_INTEGER
+    );
 
     return firstNumber - secondNumber || first.title.localeCompare(second.title);
   });

@@ -167,12 +167,13 @@ const conversation = {
 };
 
 seedConversationQuiz({
-  quizId: "quiz-week-1",
-  title: "Quiz Week 1: Complete Conversation",
+  quizId: "quiz-33.5",
+  legacyQuizIds: ["quiz-week-1"],
+  title: "Quiz 33.5: Complete Conversation",
   description:
     "Complete a 20-line conversation using greetings, introductions, and questions from the lessons.",
   conversation,
 }).catch((error) => {
-  console.error("Failed to seed Quiz Week 1:", error);
+  console.error("Failed to seed Quiz 33.5:", error);
   process.exitCode = 1;
 });
