@@ -2,6 +2,7 @@
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 import { useAppData } from "../../context/AppDataContext";
+import volumeIcon from "../../assets/icons/icons8-volume-48.png";
 import type { VocabularyWord } from "../../types/app";
 import "./LessonDetailPage.scss";
 
@@ -38,10 +39,14 @@ function LessonDetailPage() {
     });
   };
 
+  const handlePronounce = (key: string, french: string) => {
+    const rate = nextPronunciationRate.current.get(key) ?? 0.5;
+    nextPronunciationRate.current.set(key, rate === 0.5 ? 0.75 : 0.5);
+    pronounceWord({ french }, rate);
+  };
+
   const handlePronounceWord = (word: VocabularyWord) => {
-    const rate = nextPronunciationRate.current.get(word.id) ?? 0.5;
-    nextPronunciationRate.current.set(word.id, rate === 0.5 ? 0.75 : 0.5);
-    pronounceWord(word, rate);
+    handlePronounce(word.id, word.french);
   };
 
   useEffect(() => {
@@ -206,7 +211,20 @@ function LessonDetailPage() {
                       key={`${dialogue.id}-${index}`}
                     >
                       <strong>{line.speaker}</strong>
-                      <p className="lesson-detail-page__french">{line.french}</p>
+                      <div className="lesson-detail-page__french-row">
+                        <p className="lesson-detail-page__french">{line.french}</p>
+                        <button
+                          type="button"
+                          className="lesson-detail-page__audio"
+                          onClick={() =>
+                            handlePronounce(`${dialogue.id}-${index}`, line.french)
+                          }
+                          aria-label={`Play slow or fast pronunciation for ${line.french}`}
+                          title="Toggle between slow and fast pronunciation"
+                        >
+                          <img src={volumeIcon} alt="" />
+                        </button>
+                      </div>
                       <p className="lesson-detail-page__english">{line.english}</p>
                     </div>
                   ))}

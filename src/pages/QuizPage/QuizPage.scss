@@ -11,9 +11,22 @@
 
   &__breadcrumb {
     margin: 0 0 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
     font-size: 15px;
     font-weight: 600;
     color: #2f4f83;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 
   &__title {

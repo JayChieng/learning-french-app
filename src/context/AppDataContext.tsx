@@ -41,7 +41,7 @@ type AppDataContextValue = AppState & {
   register: (name: string, email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   saveQuizTopicResult: (quizId: string, result: QuizTopicResult) => void;
-  pronounceWord: (word: VocabularyWord, rate?: number) => void;
+  pronounceWord: (word: Pick<VocabularyWord, "french">, rate?: number) => void;
   progressSummary: {
     completedLessons: number;
     lessonCompletionRate: number;
@@ -454,7 +454,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }));
       },
 
-      pronounceWord: (word: VocabularyWord, rate = 0.75) => {
+      pronounceWord: (word: Pick<VocabularyWord, "french">, rate = 0.75) => {
         if ("speechSynthesis" in window) {
           const utterance = new SpeechSynthesisUtterance(word.french);
           utterance.lang = "fr-FR";

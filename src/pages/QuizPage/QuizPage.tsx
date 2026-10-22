@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import "./QuizPage.scss";
 import type { QuizTopic } from "../../types/app";
 import { useAppData } from "../../context/AppDataContext";
@@ -17,10 +18,12 @@ const QuizPage = () => {
   const [quizTopics, setQuizTopics] = useState<QuizTopic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
 
-  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedQuizId = searchParams.get("quiz");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [isFinished, setIsFinished] = useState(false);
+  const [pendingAdvanceIndex, setPendingAdvanceIndex] = useState<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -81,17 +84,19 @@ const QuizPage = () => {
     : 0;
 
   const startQuiz = (quizId: string) => {
-    setSelectedQuizId(quizId);
+    setSearchParams({ quiz: quizId });
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsFinished(false);
+    setPendingAdvanceIndex(null);
   };
 
   const goBackToQuizList = () => {
-    setSelectedQuizId(null);
+    setSearchParams({});
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsFinished(false);
+    setPendingAdvanceIndex(null);
   };
 
   const handleAnswerSelect = (answer: string) => {
@@ -105,10 +110,13 @@ const QuizPage = () => {
       ...prev,
       [currentQuestionIndex]: answer,
     }));
+    setPendingAdvanceIndex(currentQuestionIndex);
   };
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!selectedQuiz || !currentQuestion || !selectedAnswer) return;
+
+    setPendingAdvanceIndex(null);
 
     const isLastQuestion =
       currentQuestionIndex === selectedQuiz.questions.length - 1;
@@ -131,7 +139,21 @@ const QuizPage = () => {
     }
 
     setCurrentQuestionIndex((prev) => prev + 1);
-  };
+  }, [
+    answers,
+    currentQuestion,
+    currentQuestionIndex,
+    saveQuizTopicResult,
+    selectedAnswer,
+    selectedQuiz,
+  ]);
+
+  useEffect(() => {
+    if (pendingAdvanceIndex !== currentQuestionIndex || !selectedAnswer) return;
+
+    const timer = window.setTimeout(handleNext, 2000);
+    return () => window.clearTimeout(timer);
+  }, [currentQuestionIndex, handleNext, pendingAdvanceIndex, selectedAnswer]);
 
   const handlePrevious = () => {
     if (currentQuestionIndex === 0) return;
@@ -142,6 +164,13 @@ const QuizPage = () => {
     setCurrentQuestionIndex(0);
     setAnswers({});
     setIsFinished(false);
+    setPendingAdvanceIndex(null);
+  };
+
+  const selectedQuizIndex = quizTopics.findIndex((quiz) => quiz.id === selectedQuizId);
+  const nextQuiz = selectedQuizIndex >= 0 ? quizTopics[selectedQuizIndex + 1] : null;
+  const startNextQuiz = () => {
+    if (nextQuiz) startQuiz(nextQuiz.id);
   };
 
   const getOptionClassName = (optionId: string) => {
@@ -169,7 +198,11 @@ const QuizPage = () => {
     return (
       <section className="quiz-page">
         <div className="quiz-page__header">
-          <p className="quiz-page__breadcrumb">Home &gt; Quiz</p>
+          <nav className="quiz-page__breadcrumb" aria-label="Breadcrumb">
+            <Link to="/dashboard">Home</Link>
+            <span aria-hidden="true">&gt;</span>
+            <span>Quiz</span>
+          </nav>
           <h1 className="quiz-page__title">Quiz</h1>
           <p className="quiz-page__subtitle">Loading quiz topics...</p>
         </div>
@@ -181,7 +214,11 @@ const QuizPage = () => {
     return (
       <section className="quiz-page">
         <div className="quiz-page__header">
-          <p className="quiz-page__breadcrumb">Home &gt; Quiz</p>
+          <nav className="quiz-page__breadcrumb" aria-label="Breadcrumb">
+            <Link to="/dashboard">Home</Link>
+            <span aria-hidden="true">&gt;</span>
+            <span>Quiz</span>
+          </nav>
           <h1 className="quiz-page__title">Quiz</h1>
           <p className="quiz-page__subtitle">
             Choose a quiz and practise vocabulary or complete a conversation.
@@ -241,6 +278,8 @@ const QuizPage = () => {
         quiz={selectedQuiz}
         allQuizzes={quizTopics}
         onExit={goBackToQuizList}
+        hasNextQuiz={Boolean(nextQuiz)}
+        onNextQuiz={startNextQuiz}
       />
     );
   }
@@ -249,9 +288,13 @@ const QuizPage = () => {
     return (
       <section className="quiz-page">
         <div className="quiz-page__header">
-          <p className="quiz-page__breadcrumb">
-            Home &gt; Quiz &gt; {selectedQuiz.title}
-          </p>
+          <nav className="quiz-page__breadcrumb" aria-label="Breadcrumb">
+            <Link to="/dashboard">Home</Link>
+            <span aria-hidden="true">&gt;</span>
+            <Link to="/dashboard/quiz">Quiz</Link>
+            <span aria-hidden="true">&gt;</span>
+            <span>{selectedQuiz.title}</span>
+          </nav>
           <h1 className="quiz-page__title">{selectedQuiz.title}</h1>
           <p className="quiz-page__subtitle">
             Your result has been saved and synced with your progress.
@@ -283,6 +326,16 @@ const QuizPage = () => {
             >
               Retry Quiz
             </button>
+
+            {nextQuiz && (
+              <button
+                type="button"
+                className="quiz-result__button quiz-result__button--primary"
+                onClick={startNextQuiz}
+              >
+                Next Quiz
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -292,9 +345,13 @@ const QuizPage = () => {
   return (
     <section className="quiz-page">
       <div className="quiz-page__header">
-        <p className="quiz-page__breadcrumb">
-          Home &gt; Quiz &gt; {selectedQuiz.title}
-        </p>
+        <nav className="quiz-page__breadcrumb" aria-label="Breadcrumb">
+          <Link to="/dashboard">Home</Link>
+          <span aria-hidden="true">&gt;</span>
+          <Link to="/dashboard/quiz">Quiz</Link>
+          <span aria-hidden="true">&gt;</span>
+          <span>{selectedQuiz.title}</span>
+        </nav>
         <h1 className="quiz-page__title">{selectedQuiz.title}</h1>
         <p className="quiz-page__subtitle">
           Answer each question and get immediate feedback.
@@ -400,21 +457,22 @@ const QuizPage = () => {
               type="button"
               className="quiz-play__action-button quiz-play__action-button--secondary"
               onClick={handlePrevious}
-              disabled={currentQuestionIndex === 0}
+              disabled={currentQuestionIndex === 0 || pendingAdvanceIndex === currentQuestionIndex}
             >
               Previous
             </button>
 
-            <button
-              type="button"
-              className="quiz-play__action-button quiz-play__action-button--primary"
-              onClick={handleNext}
-              disabled={!selectedAnswer}
-            >
-              {currentQuestionIndex === selectedQuiz.questions.length - 1
-                ? "Finish Quiz"
-                : "Next"}
-            </button>
+            {selectedAnswer && pendingAdvanceIndex !== currentQuestionIndex && (
+              <button
+                type="button"
+                className="quiz-play__action-button quiz-play__action-button--primary"
+                onClick={handleNext}
+              >
+                {currentQuestionIndex === selectedQuiz.questions.length - 1
+                  ? "Finish Quiz"
+                  : "Next"}
+              </button>
+            )}
           </div>
         </div>
       </div>

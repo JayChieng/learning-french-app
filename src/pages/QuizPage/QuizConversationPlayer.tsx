@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import type {
   QuizConversationLine,
   QuizTopic,
@@ -34,6 +35,8 @@ type QuizConversationPlayerProps = {
   quiz: QuizTopic;
   allQuizzes: QuizTopic[];
   onExit: () => void;
+  hasNextQuiz: boolean;
+  onNextQuiz: () => void;
 };
 
 function normalizeAnswer(value: string) {
@@ -185,6 +188,8 @@ function QuizConversationSession({
   quiz,
   allQuizzes,
   onExit,
+  hasNextQuiz,
+  onNextQuiz,
   onRetry,
 }: QuizConversationPlayerProps & { onRetry: () => void }) {
   const { saveQuizTopicResult } = useAppData();
@@ -222,7 +227,7 @@ function QuizConversationSession({
         setCurrentTurnIndex((index) => index + 1);
         setDraftAnswer("");
         setOutcome(null);
-      }, 1800);
+      }, 2000);
 
       return () => {
         window.clearTimeout(timer);
@@ -289,7 +294,13 @@ function QuizConversationSession({
     return (
       <section className="quiz-page">
         <div className="quiz-page__header">
-          <p className="quiz-page__breadcrumb">Home &gt; Quiz &gt; {quiz.title}</p>
+          <nav className="quiz-page__breadcrumb" aria-label="Breadcrumb">
+            <Link to="/dashboard">Home</Link>
+            <span aria-hidden="true">&gt;</span>
+            <Link to="/dashboard/quiz">Quiz</Link>
+            <span aria-hidden="true">&gt;</span>
+            <span>{quiz.title}</span>
+          </nav>
           <h1 className="quiz-page__title">{quiz.title}</h1>
           <p className="quiz-page__subtitle">Your result has been saved and synced with your progress.</p>
         </div>
@@ -314,6 +325,15 @@ function QuizConversationSession({
             >
               Retry Conversation
             </button>
+            {hasNextQuiz && (
+              <button
+                type="button"
+                className="quiz-result__button quiz-result__button--primary"
+                onClick={onNextQuiz}
+              >
+                Next Quiz
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -323,7 +343,13 @@ function QuizConversationSession({
   return (
     <section className="quiz-page">
       <div className="quiz-page__header">
-        <p className="quiz-page__breadcrumb">Home &gt; Quiz &gt; {quiz.title}</p>
+        <nav className="quiz-page__breadcrumb" aria-label="Breadcrumb">
+          <Link to="/dashboard">Home</Link>
+          <span aria-hidden="true">&gt;</span>
+          <Link to="/dashboard/quiz">Quiz</Link>
+          <span aria-hidden="true">&gt;</span>
+          <span>{quiz.title}</span>
+        </nav>
         <h1 className="quiz-page__title">{quiz.title}</h1>
         <p className="quiz-page__subtitle">
           Complete each line to reveal the conversation. The missing speaker and answer mode change as you play.

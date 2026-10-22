@@ -15,6 +15,8 @@ import type {
   AdminContentDocument,
   AdminUserProfile,
 } from "../../types/app";
+import ContentForm from "./ContentForm";
+import LessonVocabularyEditor from "./LessonVocabularyEditor";
 import "./AdminPage.scss";
 
 type AdminStats = {
@@ -308,8 +310,8 @@ function AdminUsers() {
             <section className="admin-member-history">
               <h3>Recent learning activity</h3>
               {selectedUser.activities?.length ? (
-                <ul>
-                  {selectedUser.activities.slice(0, 5).map((activity) => (
+                <ul style={{ maxHeight: 240, overflowY: "auto" }}>
+                  {selectedUser.activities.map((activity) => (
                     <li key={activity.id}>
                       <span>{activity.message}</span>
                       <small>{activity.date}</small>
@@ -319,9 +321,6 @@ function AdminUsers() {
               ) : (
                 <p>No activity recorded yet.</p>
               )}
-              {selectedUser.completedLessonIds?.length ? (
-                <p>Completed lesson IDs: {selectedUser.completedLessonIds.join(", ")}</p>
-              ) : null}
             </section>
             <div className="admin-member-actions">
               <button
@@ -370,6 +369,18 @@ function AdminContent({ onContentSaved }: { onContentSaved: () => Promise<void> 
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
+
+  const [showJson, setShowJson] = useState(false);
+  const parsedDraft = useMemo(() => {
+    try {
+      const value: unknown = JSON.parse(draft);
+      return value && typeof value === "object" && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : null;
+    } catch {
+      return null;
+    }
+  }, [draft]);
 
   const loadDocuments = async (target: AdminContentCollection, preferredId?: string) => {
     const nextDocuments = await getAdminContentDocuments(target);
@@ -514,16 +525,40 @@ function AdminContent({ onContentSaved }: { onContentSaved: () => Promise<void> 
                   value={draftId}
                 />
               </label>
-              <label className="admin-field">
-                Document data <span>JSON format</span>
-                <textarea
-                  aria-label="Document JSON"
-                  className="admin-content__json"
-                  onChange={(event) => setDraft(event.target.value)}
-                  spellCheck={false}
-                  value={draft}
+              <div className="admin-content__view-toggle">
+                <button
+                  className="admin-button"
+                  disabled={!parsedDraft && !showJson}
+                  onClick={() => setShowJson((current) => !current)}
+                  type="button"
+                >
+                  {showJson || !parsedDraft ? "Switch to form view" : "Edit raw JSON (advanced)"}
+                </button>
+              </div>
+              {parsedDraft && !showJson ? (
+                <ContentForm
+                  data={parsedDraft}
+                  onChange={(next) => setDraft(JSON.stringify(next, null, 2))}
                 />
-              </label>
+              ) : (
+                <label className="admin-field">
+                  Document data <span>JSON format{parsedDraft ? "" : " (fix the syntax to use the form view)"}</span>
+                  <textarea
+                    aria-label="Document JSON"
+                    className="admin-content__json"
+                    onChange={(event) => setDraft(event.target.value)}
+                    spellCheck={false}
+                    value={draft}
+                  />
+                </label>
+              )}
+              {collectionName === "lessonDetails" && !isNew ? (
+                <LessonVocabularyEditor
+                  key={selectedId}
+                  lessonId={typeof parsedDraft?.lessonId === "string" ? parsedDraft.lessonId : draftId}
+                  onSaved={onContentSaved}
+                />
+              ) : null}
               <div className="admin-content__actions">
                 <button className="admin-button" disabled={busy || !draftId.trim()} onClick={saveDocument} type="button">
                   {busy ? "Saving…" : "Save changes"}

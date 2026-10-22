@@ -127,6 +127,34 @@
   font-size: 1.1rem;
 }
 
+.lesson-detail-page__french-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lesson-detail-page__french-row .lesson-detail-page__french {
+  margin-bottom: 0.35rem;
+}
+
+.lesson-detail-page__audio {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.lesson-detail-page__audio img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .lesson-detail-page__english {
   margin: 0;
   color: #607088;

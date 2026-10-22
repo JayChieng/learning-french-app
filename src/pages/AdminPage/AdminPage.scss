@@ -439,6 +439,59 @@
   gap: 0.8rem;
 }
 
+.admin-form,
+.admin-form__fields,
+.admin-form__list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.admin-form__group,
+.admin-form__item {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.8rem;
+  border: 1px solid #d9e3ea;
+  border-radius: 8px;
+  background: #f8fbfd;
+}
+
+.admin-form__group legend {
+  padding: 0 0.4rem;
+  color: #536c80;
+  font-weight: 700;
+}
+
+.admin-form__list-head,
+.admin-form__item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  color: #2c4458;
+}
+
+.admin-form__list-head span {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #e3edf3;
+  font-size: 0.8rem;
+}
+
+.admin-form__check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #536c80;
+  font-weight: 700;
+}
+
+.admin-content__view-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .admin-content__json {
   min-height: 430px;
   font-family: Consolas, "Courier New", monospace !important;
