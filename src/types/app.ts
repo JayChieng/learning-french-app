@@ -37,6 +37,9 @@ export type VocabularyWord = {
   ipa?: string;
   english: string;
   order?: number;
+  imageUrl?: string;
+  imageAttribution?: string;
+  imageSourceUrl?: string;
 };
 
 export type LessonDetail = {

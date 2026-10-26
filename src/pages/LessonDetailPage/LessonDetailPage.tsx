@@ -166,25 +166,41 @@ function LessonDetailPage() {
 
               <article
                 className="lesson-detail-page__word-card lesson-detail-page__word-card--featured"
-                onClick={() => currentWord && handlePronounceWord(currentWord)}
-                onKeyDown={(event) => {
-                  if ((event.key === "Enter" || event.key === " ") && currentWord) {
-                    event.preventDefault();
-                    handlePronounceWord(currentWord);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
               >
                 <span className="lesson-detail-page__word-counter">
                   {safeWordIndex + 1}/{detail.vocabulary.length}
                 </span>
 
-                <strong>{currentWord?.french ?? "Vocabulary"}</strong>
-                <div className="lesson-detail-page__word-ipa">
-                  {currentWord?.ipa ?? ""}
-                </div>
-                <p>{currentWord?.english ?? "No word available."}</p>
+                <button
+                  type="button"
+                  className="lesson-detail-page__word-card-action"
+                  onClick={() => currentWord && handlePronounceWord(currentWord)}
+                  aria-label={`Play pronunciation for ${currentWord?.french ?? "vocabulary"}`}
+                >
+                  {currentWord?.imageUrl ? (
+                    <img
+                      className="lesson-detail-page__word-image"
+                      src={currentWord.imageUrl}
+                      alt=""
+                    />
+                  ) : null}
+                  <strong>{currentWord?.french ?? "Vocabulary"}</strong>
+                  <div className="lesson-detail-page__word-ipa">
+                    {currentWord?.ipa ?? ""}
+                  </div>
+                  <p>{currentWord?.english ?? "No word available."}</p>
+                </button>
+
+                {currentWord?.imageAttribution && currentWord.imageSourceUrl ? (
+                  <a
+                    className="lesson-detail-page__image-attribution"
+                    href={currentWord.imageSourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Photo: {currentWord.imageAttribution}
+                  </a>
+                ) : null}
               </article>
 
               <button

@@ -45,11 +45,13 @@
     "seed:quiz36": "node scripts/quizzes/seedQuiz36.js",
     "seed:quiz37": "node scripts/quizzes/seedQuiz37.js",
     "seed:quiz38": "node scripts/quizzes/seedQuiz38.js",
+    "seed:quiz39": "node scripts/quizzes/seedQuiz39.js",
     "seed:lesson34": "node scripts/lessons/seedLesson34.js",
     "seed:lesson35": "node scripts/lessons/seedLesson35.js",
     "seed:lesson36": "node scripts/lessons/seedLesson36.js",
     "seed:lesson37": "node scripts/lessons/seedLesson37.js",
     "seed:lesson38": "node scripts/lessons/seedLesson38.js",
+    "seed:lesson39": "node scripts/lessons/seedLesson39.js",
     "seed:quiz33.5": "node scripts/quizzes/seedQuizWeek1.js",
     "preview": "vite preview"
   },

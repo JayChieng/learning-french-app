@@ -441,6 +441,9 @@ export async function getLessonDetailsFromFirestore(): Promise<LessonDetail[]> {
         example?: string;
         icon?: string;
         order?: number;
+        imageUrl?: string;
+        imageAttribution?: string;
+        imageSourceUrl?: string;
       };
 
       return {
@@ -453,6 +456,9 @@ export async function getLessonDetailsFromFirestore(): Promise<LessonDetail[]> {
         icon: data.icon,
         order: data.order,
         ipa: data.ipa,
+        imageUrl: data.imageUrl,
+        imageAttribution: data.imageAttribution,
+        imageSourceUrl: data.imageSourceUrl,
       };
     })
   );
@@ -626,6 +632,9 @@ function buildVocabularyWords(
     example?: string;
     icon?: string;
     order?: number;
+    imageUrl?: string;
+    imageAttribution?: string;
+    imageSourceUrl?: string;
   }>
 ): VocabularyWord[] {
   return sourceWords
@@ -639,6 +648,9 @@ function buildVocabularyWords(
       example: word.example?.trim() || buildVocabularyExample(word.french, word.english),
       icon: word.icon?.trim() || getVocabularyIcon(word.category ?? "general"),
       order: typeof word.order === "number" ? word.order : index + 1,
+      imageUrl: word.imageUrl?.trim() || undefined,
+      imageAttribution: word.imageAttribution?.trim() || undefined,
+      imageSourceUrl: word.imageSourceUrl?.trim() || undefined,
     }))
     .sort((a, b) => a.order - b.order);
 }
