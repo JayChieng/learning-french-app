@@ -52,6 +52,8 @@
     "seed:lesson37": "node scripts/lessons/seedLesson37.js",
     "seed:lesson38": "node scripts/lessons/seedLesson38.js",
     "seed:lesson39": "node scripts/lessons/seedLesson39.js",
+    "seed:lesson40": "node scripts/lessons/seedLesson40.js",
+    "seed:quiz40": "node scripts/quizzes/seedQuiz40.js",
     "seed:quiz33.5": "node scripts/quizzes/seedQuizWeek1.js",
     "preview": "vite preview"
   },
