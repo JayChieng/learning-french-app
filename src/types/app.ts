@@ -132,6 +132,7 @@ export type QuizConversationLine = {
   translation: string;
   sourceVocabularyIds: string[];
   blankCandidates?: string[];
+  answerMode?: "text" | "choice";
   answerRule?: "age";
 };
 

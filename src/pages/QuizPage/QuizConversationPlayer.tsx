@@ -159,11 +159,13 @@ function createChallenge(
 ): Challenge {
   const blanks = getBlankOptions(turn);
   const blank = blanks[Math.floor(Math.random() * blanks.length)];
-  const mode: AnswerMode = isAgeNumberBlank(turn, blank)
-    ? "text"
-    : Math.random() < 0.5
+  const mode: AnswerMode =
+    turn.answerMode ??
+    (isAgeNumberBlank(turn, blank)
       ? "text"
-      : "choice";
+      : Math.random() < 0.5
+        ? "text"
+        : "choice");
   const distractors = shuffle(getDistractorPool(turns, blank, quizzes)).slice(0, 3);
   const fallbacks = ["Bonjour", "Merci", "Salut", "Très bien", "Et toi ?"];
 
@@ -352,7 +354,7 @@ function QuizConversationSession({
         </nav>
         <h1 className="quiz-page__title">{quiz.title}</h1>
         <p className="quiz-page__subtitle">
-          Complete each line to reveal the conversation. The missing speaker and answer mode change as you play.
+          Complete each line to reveal the conversation. The missing speaker and answer mode depend on the line.
         </p>
       </div>
 
