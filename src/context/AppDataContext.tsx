@@ -19,6 +19,7 @@ import {
   getLessonsFromFirestore,
   getVocabularyFromFirestore,
   isAccountAccessBlocked,
+  isUnverifiedPasswordUser,
   subscribeToAuth,
   subscribeToAccountAccess,
 } from "../services/firebase";
@@ -90,6 +91,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = subscribeToAuth((user) => {
       const syncAuthState = async () => {
+        if (user && isUnverifiedPasswordUser(user)) {
+          return;
+        }
+
         if (user && (await isAccountAccessBlocked(user.uid))) {
           await firebaseSignOut();
           return;
@@ -394,24 +399,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       register: async (name: string, email: string, password: string) => {
         const normalizedEmail = email.trim().toLowerCase();
-        const user = await firebaseRegister(name.trim(), normalizedEmail, password);
-
-        const role = await getUserRole(user);
-
-        setUserId(user.uid);
-        setState((current) => ({
-          ...current,
-          auth: {
-            isLoggedIn: true,
-            name: name.trim(),
-            email: normalizedEmail,
-            role,
-          },
-          activities: prependActivity(
-            current.activities,
-            "Created an account and started a new learning plan."
-          ),
-        }));
+        await firebaseRegister(name.trim(), normalizedEmail, password);
       },
 
       signOut: async () => {

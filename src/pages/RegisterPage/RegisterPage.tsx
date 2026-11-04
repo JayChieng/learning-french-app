@@ -17,6 +17,7 @@ function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const handleSubmit = async () => {
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -39,9 +40,17 @@ function RegisterPage() {
       await register(name.trim(), email.trim(), password);
       setPassword("");
       setConfirmPassword("");
-      navigate("/dashboard");
+      setNotice(`A verification link was sent to ${email.trim()}. Please verify your email, then log in.`);
     } catch (err) {
-      setError("Registration failed. Try a different email.");
+      const code = (err as { code?: string }).code;
+      setNotice("");
+      setError(
+        code === "auth/email-already-in-use"
+          ? "This email is already registered."
+          : code === "auth/invalid-email"
+            ? "Invalid email address."
+            : "Could not verify this email address. Please use a real email."
+      );
       console.error(err);
     }
   };
@@ -111,6 +120,11 @@ function RegisterPage() {
           />
 
           {error ? <p className="register-page__error">{error}</p> : null}
+          {notice ? (
+            <p className="register-page__notice" role="status">
+              {notice} (Check your spam folder if you don't see it.) <Link to="/login">Go to Login</Link>
+            </p>
+          ) : null}
 
           <button className="register-page__submit" type="submit">
             Sign Up

@@ -112,6 +112,13 @@
   color: #c62828;
 }
 
+.register-page__notice {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
 @media (max-width: 720px) {
   .register-page__brand {
     padding: 1rem;

@@ -2,6 +2,8 @@ import { initializeApp, type FirebaseOptions } from "firebase/app";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
+  sendEmailVerification,
   getAuth,
   getIdTokenResult,
   GoogleAuthProvider,
@@ -107,23 +109,40 @@ export async function firebaseRegister(
 ) {
   const result = await createUserWithEmailAndPassword(auth, email, password);
 
-  if (auth.currentUser) {
-    await updateProfile(auth.currentUser, {
-      displayName: name,
-    });
+  // Firebase rejects the send if the address is invalid/unreachable; roll back the account then.
+  try {
+    await updateProfile(result.user, { displayName: name });
+    await sendEmailVerification(result.user);
+  } catch (error) {
+    await deleteUser(result.user).catch(() => undefined);
+    throw error;
   }
 
-  await ensureUserProfile({
-    uid: result.user.uid,
-    displayName: name,
-    email: result.user.email,
-  });
-
+  // The Firestore profile is created on first verified sign-in.
+  await signOut(auth);
   return result.user;
+}
+
+export function isUnverifiedPasswordUser(user: User) {
+  return (
+    !user.emailVerified &&
+    user.providerData.length > 0 &&
+    user.providerData.every((provider) => provider.providerId === "password")
+  );
 }
 
 export async function firebaseSignIn(email: string, password: string) {
   const result = await signInWithEmailAndPassword(auth, email, password);
+
+  if (isUnverifiedPasswordUser(result.user)) {
+    try {
+      await sendEmailVerification(result.user);
+    } catch {
+      // Rate-limited resend is non-fatal.
+    }
+    await signOut(auth);
+    throw new Error("Email not verified. We sent a verification link to your inbox; please verify, then log in.");
+  }
 
   await ensureUserProfile({
     uid: result.user.uid,

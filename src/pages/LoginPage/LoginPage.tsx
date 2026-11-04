@@ -28,7 +28,8 @@ function LoginPage() {
       navigate("/dashboard");
     } catch (err) {
       setError(
-        err instanceof Error && err.message.startsWith("This account is blocked")
+        err instanceof Error &&
+          (err.message.startsWith("This account is blocked") || err.message.startsWith("Email not verified"))
           ? err.message
           : "Login failed. Please check your email and password."
       );
