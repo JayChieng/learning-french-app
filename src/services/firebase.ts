@@ -123,18 +123,25 @@ export async function firebaseRegister(
   return result.user;
 }
 
-export function isUnverifiedPasswordUser(user: User) {
-  return (
+export async function requiresEmailVerification(user: User) {
+  const isUnverifiedPasswordUser =
     !user.emailVerified &&
     user.providerData.length > 0 &&
-    user.providerData.every((provider) => provider.providerId === "password")
-  );
+    user.providerData.every((provider) => provider.providerId === "password");
+
+  if (!isUnverifiedPasswordUser) {
+    return false;
+  }
+
+  // Accounts that already have a profile predate verification and are grandfathered in.
+  const profile = await getDoc(doc(firestore, "users", user.uid));
+  return !profile.exists();
 }
 
 export async function firebaseSignIn(email: string, password: string) {
   const result = await signInWithEmailAndPassword(auth, email, password);
 
-  if (isUnverifiedPasswordUser(result.user)) {
+  if (await requiresEmailVerification(result.user)) {
     try {
       await sendEmailVerification(result.user);
     } catch {

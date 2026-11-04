@@ -19,7 +19,7 @@ import {
   getLessonsFromFirestore,
   getVocabularyFromFirestore,
   isAccountAccessBlocked,
-  isUnverifiedPasswordUser,
+  requiresEmailVerification,
   subscribeToAuth,
   subscribeToAccountAccess,
 } from "../services/firebase";
@@ -91,7 +91,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = subscribeToAuth((user) => {
       const syncAuthState = async () => {
-        if (user && isUnverifiedPasswordUser(user)) {
+        if (user && (await requiresEmailVerification(user))) {
           return;
         }
 
