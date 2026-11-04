@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 import { useAppData } from "../../context/AppDataContext";
@@ -6,6 +7,8 @@ import "./LessonsPage.scss";
 
 function LessonsPage() {
   const { lessons } = useAppData();
+  const [isReversed, setIsReversed] = useState(false);
+  const displayedLessons = isReversed ? [...lessons].reverse() : lessons;
 
   return (
     <section className="lessons-page">
@@ -16,8 +19,18 @@ function LessonsPage() {
         <p>Follow a sequenced curriculum and open each lesson to study dialogues, meaning, and key vocabulary.</p>
       </div>
 
+      <div className="lessons-page__sort">
+        <button
+          type="button"
+          onClick={() => setIsReversed((current) => !current)}
+          aria-pressed={isReversed}
+        >
+          {isReversed ? "Restore original lesson order" : "Reverse lesson order"}
+        </button>
+      </div>
+
       <div className="lessons-page__grid">
-        {lessons.map((lesson) => {
+        {displayedLessons.map((lesson) => {
           const percentage = Math.round(
             (lesson.completedSteps / lesson.totalSteps) * 100
           );

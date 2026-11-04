@@ -135,6 +135,21 @@ export async function seedCustomQuiz({
 
       return translation ? { ...line, translation } : line;
     });
+    const correctOption = question.options.find((option) => option.isCorrect);
+    const completedFrenchDialogue = correctOption
+      ? question.dialogue
+          ?.filter((line) => line.blank)
+          .map((line) => `${line.text}${correctOption.label}${line.suffix ?? ""}`.trim())
+          .find(Boolean)
+      : undefined;
+    const frenchAnswer =
+      completedFrenchDialogue ??
+      (correctOption?.translation
+        ? correctOption.label
+        : lessonVocabulary.get(vocabularyId)?.french);
+    const answerSpeechSegments =
+      question.answerSpeechSegments ??
+      (frenchAnswer ? [{ text: frenchAnswer, lang: "fr-FR" }] : undefined);
     const options = shuffleItems(question.options).map((option, optionIndex) => {
       const translation = frenchMeanings.get(normalizeVocabularyValue(option.label));
 
@@ -152,17 +167,22 @@ export async function seedCustomQuiz({
       ...(promptFrenchTerm && promptTranslation
         ? { promptFrenchTerm, promptTranslation }
         : {}),
-      speechSegments: question.dialogue
-        ? [
-            {
-              text: question.dialogue
-                .filter((line) => !line.blank && line.text.trim())
-                .map((line) => line.text.trim())
-                .join(". "),
-              lang: "fr-FR",
-            },
-          ].filter((segment) => segment.text)
-        : createQuestionSpeechSegments(question.prompt, lessonVocabulary.get(vocabularyId)),
+      speechSegments:
+        question.speechSegments ??
+        (question.dialogue
+          ? [
+              {
+                text: question.dialogue
+                  .filter((line) => !line.blank && line.text.trim())
+                  .map((line) => line.text.trim())
+                  .join(". "),
+                lang: "fr-FR",
+              },
+            ].filter((segment) => segment.text)
+          : question.promptFrenchTerm
+            ? [{ text: question.promptFrenchTerm, lang: "fr-FR" }]
+            : createQuestionSpeechSegments(question.prompt, lessonVocabulary.get(vocabularyId))),
+      ...(answerSpeechSegments ? { answerSpeechSegments } : {}),
       ...(dialogue ? { dialogue } : {}),
       explanation: `Correct answer: ${question.options.find((option) => option.isCorrect)?.label}`,
       options,
@@ -184,9 +204,10 @@ export async function seedConversationQuiz({
   title,
   description,
   conversation,
+  expectedPairCount = 10,
 }) {
-  if (!Array.isArray(conversation?.pairs) || conversation.pairs.length !== 10) {
-    throw new Error(`${title} must contain exactly 10 conversation pairs.`);
+  if (!Array.isArray(conversation?.pairs) || conversation.pairs.length !== expectedPairCount) {
+    throw new Error(`${title} must contain exactly ${expectedPairCount} conversation pairs.`);
   }
 
   const vocabularySnapshot = await db.collection("vocabulary").get();

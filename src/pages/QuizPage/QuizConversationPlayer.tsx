@@ -204,6 +204,7 @@ function QuizConversationSession({
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [isOutcomeSpeechComplete, setIsOutcomeSpeechComplete] = useState(true);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const currentTurn = turns[currentTurnIndex];
   const currentChallenge = challenges[currentTurnIndex - 1];
@@ -212,6 +213,8 @@ function QuizConversationSession({
     if (!currentTurn || isFinished) return;
 
     if (outcome) {
+      if (!isOutcomeSpeechComplete) return;
+
       const timer = window.setTimeout(() => {
         if (currentTurnIndex === turns.length - 1) {
           saveQuizTopicResult(quiz.id, {
@@ -237,16 +240,10 @@ function QuizConversationSession({
       };
     }
 
-    const visiblePromptSegments = [
-      currentChallenge.blank.before,
-      currentChallenge.blank.after,
-    ];
-    speakQuizTexts(
-      currentTurnIndex === 1
-        ? [turns[0].text, ...visiblePromptSegments]
-        : visiblePromptSegments
-    );
-
+    stopQuizPrompt();
+    if (currentTurnIndex === 1 && turns[0]) {
+      speakQuizTexts([turns[0].text], "fr-FR");
+    }
     return stopQuizPrompt;
   }, [
     correctCount,
@@ -254,6 +251,7 @@ function QuizConversationSession({
     currentTurn,
     currentTurnIndex,
     isFinished,
+    isOutcomeSpeechComplete,
     outcome,
     quiz.id,
     saveQuizTopicResult,
@@ -282,7 +280,14 @@ function QuizConversationSession({
     if (outcome || !currentChallenge) return;
 
     const correct = isCorrectAnswer(currentTurn, currentChallenge.blank, answer);
-    playQuizAnswerSound(correct);
+    setIsOutcomeSpeechComplete(false);
+    playQuizAnswerSound(correct, () => {
+      speakQuizTexts(
+        [getCompletedLine(currentChallenge.blank, currentChallenge.blank.answer)],
+        "fr-FR",
+        () => setIsOutcomeSpeechComplete(true)
+      );
+    });
     setOutcome({
       correct,
       displayText: getCompletedLine(

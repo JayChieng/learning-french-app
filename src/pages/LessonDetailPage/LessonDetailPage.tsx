@@ -26,6 +26,8 @@ function LessonDetailPage() {
       : undefined;
 
   const wordCount = detail?.vocabulary.length ?? 0;
+  const imageCredits =
+    detail?.vocabulary.filter((word) => word.imageAttribution && word.imageSourceUrl) ?? [];
   const safeWordIndex = wordCount === 0 ? 0 : Math.min(activeWordIndex, wordCount - 1);
   const currentWord = wordCount === 0 ? undefined : detail?.vocabulary[safeWordIndex];
   const isLastWord = wordCount > 0 && safeWordIndex === wordCount - 1;
@@ -177,7 +179,14 @@ function LessonDetailPage() {
                   onClick={() => currentWord && handlePronounceWord(currentWord)}
                   aria-label={`Play pronunciation for ${currentWord?.french ?? "vocabulary"}`}
                 >
-                  {currentWord?.imageUrl ? (
+                  {currentWord?.imageColor ? (
+                    <span
+                      className="lesson-detail-page__word-color"
+                      style={{ backgroundColor: currentWord.imageColor }}
+                      role="img"
+                      aria-label={`${currentWord.english} color`}
+                    />
+                  ) : currentWord?.imageUrl ? (
                     <img
                       className="lesson-detail-page__word-image"
                       src={currentWord.imageUrl}
@@ -191,16 +200,6 @@ function LessonDetailPage() {
                   <p>{currentWord?.english ?? "No word available."}</p>
                 </button>
 
-                {currentWord?.imageAttribution && currentWord.imageSourceUrl ? (
-                  <a
-                    className="lesson-detail-page__image-attribution"
-                    href={currentWord.imageSourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Photo: {currentWord.imageAttribution}
-                  </a>
-                ) : null}
               </article>
 
               <button
@@ -264,6 +263,26 @@ function LessonDetailPage() {
                 </article>
               ))}
             </div>
+          </section>
+        ) : null}
+
+        {imageCredits.length > 0 ? (
+          <section className="lesson-detail-page__section lesson-detail-page__section--credits">
+            <details className="lesson-detail-page__image-credits">
+              <summary>Photo credits and licenses</summary>
+              <ul>
+                {imageCredits.map((word) => (
+                  <li key={word.id}>
+                    <span>
+                      {word.french}: {word.imageAttribution}
+                    </span>
+                    <a href={word.imageSourceUrl} target="_blank" rel="noreferrer">
+                      Source and license
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
           </section>
         ) : null}
       </div>

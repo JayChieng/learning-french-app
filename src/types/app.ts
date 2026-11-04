@@ -38,6 +38,7 @@ export type VocabularyWord = {
   english: string;
   order?: number;
   imageUrl?: string;
+  imageColor?: string;
   imageAttribution?: string;
   imageSourceUrl?: string;
 };
@@ -107,7 +108,10 @@ export type QuizQuestion = {
   prompt: string;
   promptFrenchTerm?: string;
   promptTranslation?: string;
+  promptColor?: string;
+  speakPrompt?: boolean;
   speechSegments?: QuizSpeechSegment[];
+  answerSpeechSegments?: QuizSpeechSegment[];
   dialogue?: QuizDialogueLine[];
   explanation: string;
   options: QuizOption[];

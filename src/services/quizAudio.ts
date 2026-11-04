@@ -36,8 +36,15 @@ export function speakQuizText(text: string, lang = "fr-FR") {
 	window.speechSynthesis.speak(utterance);
 }
 
-export function speakQuizTexts(texts: string[], lang = "fr-FR") {
-	if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+export function speakQuizTexts(
+	texts: string[],
+	lang = "fr-FR",
+	onComplete?: () => void
+) {
+	if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+		onComplete?.();
+		return;
+	}
 
 	const phrases = texts
 		.map((text) =>
@@ -48,22 +55,40 @@ export function speakQuizTexts(texts: string[], lang = "fr-FR") {
 				.trim()
 		)
 		.filter(Boolean);
-	if (phrases.length === 0) return;
+	if (phrases.length === 0) {
+		onComplete?.();
+		return;
+	}
 
 	stopQuizPrompt();
-	for (const phrase of phrases) {
+	phrases.forEach((phrase, index) => {
 		const utterance = new SpeechSynthesisUtterance(phrase);
 		utterance.lang = lang;
 		utterance.rate = 0.75;
+		if (index === phrases.length - 1 && onComplete) {
+			utterance.onend = onComplete;
+			utterance.onerror = onComplete;
+		}
 		window.speechSynthesis.speak(utterance);
-	}
+	});
 }
 
-export function playQuizAnswerSound(isCorrect: boolean) {
-	if (typeof window === "undefined") return;
+export function playQuizAnswerSound(isCorrect: boolean, onComplete?: () => void) {
+	if (typeof window === "undefined") {
+		onComplete?.();
+		return;
+	}
 
 	activeAnswerAudio?.pause();
 	activeAnswerAudio = new Audio(isCorrect ? correctAnswerAudio : incorrectAnswerAudio);
 	activeAnswerAudio.currentTime = 0;
-	void activeAnswerAudio.play().catch(() => {});
+	let hasCompleted = false;
+	const complete = () => {
+		if (hasCompleted) return;
+		hasCompleted = true;
+		onComplete?.();
+	};
+	activeAnswerAudio.onended = complete;
+	activeAnswerAudio.onerror = complete;
+	void activeAnswerAudio.play().catch(complete);
 }

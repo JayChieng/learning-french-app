@@ -1,6 +1,26 @@
 ﻿.lesson-detail-page {
+  width: 100%;
+  min-width: 0;
   max-width: 1260px;
   margin: 0 auto;
+}
+
+.lesson-detail-page__hero > div:first-child,
+.lesson-detail-page__sections,
+.lesson-detail-page__section,
+.lesson-detail-page__dialogue,
+.lesson-detail-page__line,
+.lesson-detail-page__explanation-card {
+  min-width: 0;
+}
+
+.lesson-detail-page__hero h1,
+.lesson-detail-page__hero p,
+.lesson-detail-page__dialogue h3,
+.lesson-detail-page__french,
+.lesson-detail-page__english,
+.lesson-detail-page__explanation-card p {
+  overflow-wrap: anywhere;
 }
 
 .lesson-detail-page__hero {
@@ -131,6 +151,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
+}
+
+.lesson-detail-page__french {
+  flex: 1;
+  min-width: 0;
 }
 
 .lesson-detail-page__french-row .lesson-detail-page__french {
@@ -211,7 +237,7 @@
 }
 
 .lesson-detail-page__word-card--featured {
-  height: 360px;
+  height: auto;
 }
 
 .lesson-detail-page__word-card-action {
@@ -221,6 +247,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -238,13 +265,40 @@
   object-fit: cover;
 }
 
-.lesson-detail-page__image-attribution {
-  align-self: center;
-  margin-top: 0.5rem;
+.lesson-detail-page__word-color {
+  display: block;
+  width: min(100%, 260px);
+  height: 112px;
+  margin: 0 0 0.75rem;
+  border: 1px solid rgba(22, 45, 87, 0.16);
+  border-radius: 16px;
+}
+
+.lesson-detail-page__section--credits {
+  padding-block: 0.5rem;
+}
+
+.lesson-detail-page__image-credits {
   color: #607088;
-  font-size: 0.7rem;
-  line-height: 1.3;
-  text-decoration: underline;
+  font-size: 0.8rem;
+}
+
+.lesson-detail-page__image-credits summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.lesson-detail-page__image-credits ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.lesson-detail-page__image-credits li {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.35rem;
 }
 
 .lesson-detail-page__word-counter {
@@ -279,6 +333,11 @@
   font-weight: 700;
   font-size: clamp(1.1rem, 2vw, 2rem);
   line-height: 1.2;
+}
+
+.lesson-detail-page__word-ipa {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 960px) {

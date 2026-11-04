@@ -442,6 +442,7 @@ export async function getLessonDetailsFromFirestore(): Promise<LessonDetail[]> {
         icon?: string;
         order?: number;
         imageUrl?: string;
+        imageColor?: string;
         imageAttribution?: string;
         imageSourceUrl?: string;
       };
@@ -457,6 +458,7 @@ export async function getLessonDetailsFromFirestore(): Promise<LessonDetail[]> {
         order: data.order,
         ipa: data.ipa,
         imageUrl: data.imageUrl,
+        imageColor: data.imageColor,
         imageAttribution: data.imageAttribution,
         imageSourceUrl: data.imageSourceUrl,
       };
@@ -510,7 +512,21 @@ export async function getVocabularyFromFirestore(): Promise<VocabularyWord[]> {
 }
 
 export async function getQuizzesFromFirestore(): Promise<QuizTopic[]> {
-  const snapshot = await getDocs(collection(firestore, "quizzes"));
+  const [snapshot, vocabularySnapshot] = await Promise.all([
+    getDocs(collection(firestore, "quizzes")),
+    getDocs(collection(firestore, "vocabulary")),
+  ]);
+  const vocabulary = vocabularySnapshot.docs.map((document) => {
+    const data = document.data() as { french?: string; english?: string };
+    return { french: data.french ?? "", english: data.english ?? "" };
+  });
+  const normalizeTerm = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLocaleLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
 
   const quizzes = snapshot.docs.map((docSnapshot) => {
     const data = docSnapshot.data() as {
@@ -519,12 +535,53 @@ export async function getQuizzesFromFirestore(): Promise<QuizTopic[]> {
       questions: QuizTopic["questions"];
       conversation?: QuizTopic["conversation"];
     };
+    const questions = (data.questions ?? []).map((question) => {
+      if (question.answerSpeechSegments?.length) return question;
+
+      const correctOption = question.options.find((option) => option.isCorrect);
+      const correctAnswer = correctOption?.label;
+      const normalizedCorrectAnswer = correctAnswer ? normalizeTerm(correctAnswer) : "";
+      const completedFrenchDialogue = correctAnswer
+        ? question.dialogue
+            ?.filter((line) => line.blank)
+            .map((line) => `${line.text}${correctAnswer}${line.suffix ?? ""}`.trim())
+            .find(Boolean)
+        : undefined;
+      const matchingFrenchAnswer = vocabulary.find(
+        (word) => normalizeTerm(word.french) === normalizedCorrectAnswer
+      )?.french ?? (correctOption?.translation ? correctAnswer : undefined);
+      const frenchPromptSegment = question.speechSegments?.find(
+        (segment) => segment.lang === "fr-FR"
+      )?.text;
+      const promptFrenchTerm = question.promptFrenchTerm;
+      const quotedTerm = question.prompt.match(/^What does\s+["'](.+?)["']\s+mean\?$/i)?.[1];
+      const frenchPromptTerm = [promptFrenchTerm, quotedTerm, frenchPromptSegment].find(
+        (term) =>
+          term &&
+          vocabulary.some((word) => normalizeTerm(word.french) === normalizeTerm(term))
+      );
+      const frenchTerm =
+        completedFrenchDialogue ??
+        matchingFrenchAnswer ??
+        (frenchPromptTerm
+          ? vocabulary.find(
+              (word) => normalizeTerm(word.french) === normalizeTerm(frenchPromptTerm)
+            )?.french ?? frenchPromptTerm
+          : undefined);
+
+      return frenchTerm
+        ? {
+            ...question,
+            answerSpeechSegments: [{ text: frenchTerm, lang: "fr-FR" as const }],
+          }
+        : question;
+    });
 
     return {
       id: docSnapshot.id,
       title: data.title,
       description: data.description,
-      questions: data.questions ?? [],
+      questions,
       ...(data.conversation ? { conversation: data.conversation } : {}),
     } satisfies QuizTopic;
   });
@@ -633,6 +690,7 @@ function buildVocabularyWords(
     icon?: string;
     order?: number;
     imageUrl?: string;
+    imageColor?: string;
     imageAttribution?: string;
     imageSourceUrl?: string;
   }>
@@ -649,6 +707,7 @@ function buildVocabularyWords(
       icon: word.icon?.trim() || getVocabularyIcon(word.category ?? "general"),
       order: typeof word.order === "number" ? word.order : index + 1,
       imageUrl: word.imageUrl?.trim() || undefined,
+      imageColor: word.imageColor?.trim() || undefined,
       imageAttribution: word.imageAttribution?.trim() || undefined,
       imageSourceUrl: word.imageSourceUrl?.trim() || undefined,
     }))

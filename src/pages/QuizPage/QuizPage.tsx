@@ -6,7 +6,7 @@ import { useAppData } from "../../context/AppDataContext";
 import { getQuizzesFromFirestore } from "../../services/firebase";
 import {
   playQuizAnswerSound,
-  speakQuizPrompt,
+  speakQuizTexts,
   stopQuizPrompt,
 } from "../../services/quizAudio";
 import QuizConversationPlayer from "./QuizConversationPlayer";
@@ -17,6 +17,7 @@ const QuizPage = () => {
   const { quizResults, saveQuizTopicResult } = useAppData();
   const [quizTopics, setQuizTopics] = useState<QuizTopic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
+  const [isQuizOrderReversed, setIsQuizOrderReversed] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedQuizId = searchParams.get("quiz");
@@ -24,6 +25,7 @@ const QuizPage = () => {
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [isFinished, setIsFinished] = useState(false);
   const [pendingAdvanceIndex, setPendingAdvanceIndex] = useState<number | null>(null);
+  const [isAnswerSpeechComplete, setIsAnswerSpeechComplete] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -65,8 +67,7 @@ const QuizPage = () => {
 
   useEffect(() => {
     if (!selectedQuizId || !currentQuestion || isFinished) return;
-
-    speakQuizPrompt(currentQuestion);
+    stopQuizPrompt();
     return stopQuizPrompt;
   }, [currentQuestion, isFinished, selectedQuizId]);
 
@@ -89,6 +90,7 @@ const QuizPage = () => {
     setAnswers({});
     setIsFinished(false);
     setPendingAdvanceIndex(null);
+    setIsAnswerSpeechComplete(true);
   };
 
   const goBackToQuizList = () => {
@@ -97,6 +99,7 @@ const QuizPage = () => {
     setAnswers({});
     setIsFinished(false);
     setPendingAdvanceIndex(null);
+    setIsAnswerSpeechComplete(true);
   };
 
   const handleAnswerSelect = (answer: string) => {
@@ -104,7 +107,15 @@ const QuizPage = () => {
 
     const isCorrect = currentQuestion.options.find((option) => option.id === answer)?.isCorrect;
     stopQuizPrompt();
-    playQuizAnswerSound(isCorrect === true);
+    const answerSpeechSegments = currentQuestion.answerSpeechSegments ?? [];
+    setIsAnswerSpeechComplete(answerSpeechSegments.length === 0);
+    playQuizAnswerSound(isCorrect === true, () => {
+      speakQuizTexts(
+        answerSpeechSegments.map((segment) => segment.text),
+        answerSpeechSegments[0]?.lang ?? "fr-FR",
+        () => setIsAnswerSpeechComplete(true)
+      );
+    });
 
     setAnswers((prev) => ({
       ...prev,
@@ -149,11 +160,23 @@ const QuizPage = () => {
   ]);
 
   useEffect(() => {
-    if (pendingAdvanceIndex !== currentQuestionIndex || !selectedAnswer) return;
+    if (
+      pendingAdvanceIndex !== currentQuestionIndex ||
+      !selectedAnswer ||
+      !isAnswerSpeechComplete
+    ) {
+      return;
+    }
 
     const timer = window.setTimeout(handleNext, 2000);
     return () => window.clearTimeout(timer);
-  }, [currentQuestionIndex, handleNext, pendingAdvanceIndex, selectedAnswer]);
+  }, [
+    currentQuestionIndex,
+    handleNext,
+    isAnswerSpeechComplete,
+    pendingAdvanceIndex,
+    selectedAnswer,
+  ]);
 
   const handlePrevious = () => {
     if (currentQuestionIndex === 0) return;
@@ -165,6 +188,7 @@ const QuizPage = () => {
     setAnswers({});
     setIsFinished(false);
     setPendingAdvanceIndex(null);
+    setIsAnswerSpeechComplete(true);
   };
 
   const selectedQuizIndex = quizTopics.findIndex((quiz) => quiz.id === selectedQuizId);
@@ -225,8 +249,18 @@ const QuizPage = () => {
           </p>
         </div>
 
+        <div className="quiz-page__sort">
+          <button
+            type="button"
+            onClick={() => setIsQuizOrderReversed((current) => !current)}
+            aria-pressed={isQuizOrderReversed}
+          >
+            {isQuizOrderReversed ? "Restore original order" : "Reverse order"}
+          </button>
+        </div>
+
         <div className="quiz-page__grid">
-          {quizTopics.map((quiz) => {
+          {(isQuizOrderReversed ? [...quizTopics].reverse() : quizTopics).map((quiz) => {
             const quizResult = quizResults[quiz.id];
 
             return (
@@ -393,6 +427,15 @@ const QuizPage = () => {
                 currentQuestion.prompt
               )}
             </h2>
+
+            {currentQuestion.promptColor && (
+              <div
+                className="quiz-play__color-swatch"
+                style={{ backgroundColor: currentQuestion.promptColor }}
+                role="img"
+                aria-label="Solid colour swatch"
+              />
+            )}
 
             {currentQuestion.dialogue && (
               <div className="quiz-play__dialogue" aria-label="Dialogue">

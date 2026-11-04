@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { initializeApp, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -44,12 +44,48 @@ const lessonDetail = {
 };
 
 const words = [
-  { id: "vocab-227", french: "Tu aimes quoi ?", ipa: "/ty ɛm kwa/", english: "What do you like?", order: 217 },
-  { id: "vocab-228", french: "J'aime le français.", ipa: "/ʒɛm lə fʁɑ̃.sɛ/", english: "I like French.", order: 218 },
-  { id: "vocab-229", french: "J'aime le football.", ipa: "/ʒɛm lə fut.bɔl/", english: "I like football / soccer.", order: 219 },
-  { id: "vocab-230", french: "J'aime la musique.", ipa: "/ʒɛm la my.zik/", english: "I like music.", order: 220 },
-  { id: "vocab-231", french: "J'aime les films.", ipa: "/ʒɛm le film/", english: "I like movies.", order: 221 },
-  { id: "vocab-232", french: "J'aime le café.", ipa: "/ʒɛm lə ka.fe/", english: "I like coffee.", order: 222 },
+  {
+    id: "vocab-227",
+    french: "Tu aimes quoi ?",
+    ipa: "/ty ɛm kwa/",
+    english: "What do you like?",
+    order: 217,
+  },
+  {
+    id: "vocab-228",
+    french: "J'aime le français.",
+    ipa: "/ʒɛm lə fʁɑ̃.sɛ/",
+    english: "I like French.",
+    order: 218,
+  },
+  {
+    id: "vocab-229",
+    french: "J'aime le football.",
+    ipa: "/ʒɛm lə fut.bɔl/",
+    english: "I like football / soccer.",
+    order: 219,
+  },
+  {
+    id: "vocab-230",
+    french: "J'aime la musique.",
+    ipa: "/ʒɛm la my.zik/",
+    english: "I like music.",
+    order: 220,
+  },
+  {
+    id: "vocab-231",
+    french: "J'aime les films.",
+    ipa: "/ʒɛm le film/",
+    english: "I like movies.",
+    order: 221,
+  },
+  {
+    id: "vocab-232",
+    french: "J'aime le café.",
+    ipa: "/ʒɛm lə ka.fe/",
+    english: "I like coffee.",
+    order: 222,
+  },
 ];
 
 async function seedLessonTwentyFive() {
@@ -70,6 +106,9 @@ async function seedLessonTwentyFive() {
           ipa: word.ipa,
           english: word.english,
           order: word.order,
+          imageUrl: FieldValue.delete(),
+          imageAttribution: FieldValue.delete(),
+          imageSourceUrl: FieldValue.delete(),
         },
         { merge: true }
       )
