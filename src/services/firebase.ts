@@ -463,6 +463,7 @@ export async function getLessonDetailsFromFirestore(): Promise<LessonDetail[]> {
     vocabularySnapshot.docs.map((docSnapshot) => {
       const data = docSnapshot.data() as {
         french: string;
+        pronunciationText?: string;
         english: string;
         ipa?: string;
         category?: string;
@@ -480,6 +481,7 @@ export async function getLessonDetailsFromFirestore(): Promise<LessonDetail[]> {
         id: docSnapshot.id,
         lessonId: data.lessonId,
         french: data.french,
+        pronunciationText: data.pronunciationText,
         english: data.english,
         category: data.category ?? "general",
         example: data.example,
@@ -516,6 +518,7 @@ export async function getVocabularyFromFirestore(): Promise<VocabularyWord[]> {
     snapshot.docs.map((docSnapshot) => {
       const data = docSnapshot.data() as {
         french: string;
+        pronunciationText?: string;
         english: string;
         ipa?: string;
         category?: string;
@@ -529,6 +532,7 @@ export async function getVocabularyFromFirestore(): Promise<VocabularyWord[]> {
         id: docSnapshot.id,
         lessonId: data.lessonId,
         french: data.french,
+        pronunciationText: data.pronunciationText,
         english: data.english,
         category: data.category ?? "general",
         example: data.example,
@@ -712,6 +716,7 @@ function buildVocabularyWords(
     id: string;
     lessonId: string;
     french: string;
+    pronunciationText?: string;
     english: string;
     ipa?: string;
     category?: string;
@@ -729,6 +734,7 @@ function buildVocabularyWords(
       id: word.id,
       lessonId: word.lessonId,
       french: word.french,
+      pronunciationText: word.pronunciationText?.trim() || undefined,
       ipa: word.ipa?.trim() || undefined,
       english: word.english,
       category: word.category ?? "general",

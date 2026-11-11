@@ -48,7 +48,10 @@ function LessonDetailPage() {
   };
 
   const handlePronounceWord = (word: VocabularyWord) => {
-    handlePronounce(word.id, word.french);
+    const pronunciationText = word.pronunciationText ?? word.french;
+    const rate = nextPronunciationRate.current.get(word.id) ?? 0.5;
+    nextPronunciationRate.current.set(word.id, rate === 0.5 ? 0.75 : 0.5);
+    pronounceWord({ french: word.french, pronunciationText }, rate);
   };
 
   useEffect(() => {
@@ -57,7 +60,10 @@ function LessonDetailPage() {
     }
 
     const timer = window.setTimeout(() => {
-      pronounceWord(currentWord);
+      pronounceWord({
+        french: currentWord.french,
+        pronunciationText: currentWord.pronunciationText,
+      });
     }, 150);
 
     return () => window.clearTimeout(timer);

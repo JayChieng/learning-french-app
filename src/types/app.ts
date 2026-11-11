@@ -34,6 +34,7 @@ export type VocabularyWord = {
   id: string;
   lessonId: string;
   french: string;
+  pronunciationText?: string;
   ipa?: string;
   english: string;
   order?: number;
