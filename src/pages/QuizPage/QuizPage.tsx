@@ -17,7 +17,7 @@ const QuizPage = () => {
   const { quizResults, saveQuizTopicResult } = useAppData();
   const [quizTopics, setQuizTopics] = useState<QuizTopic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
-  const [isQuizOrderReversed, setIsQuizOrderReversed] = useState(false);
+  const [isQuizOrderReversed, setIsQuizOrderReversed] = useState(true);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedQuizId = searchParams.get("quiz");

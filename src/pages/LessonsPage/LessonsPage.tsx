@@ -7,7 +7,7 @@ import "./LessonsPage.scss";
 
 function LessonsPage() {
   const { lessons } = useAppData();
-  const [isReversed, setIsReversed] = useState(false);
+  const [isReversed, setIsReversed] = useState(true);
   const displayedLessons = isReversed ? [...lessons].reverse() : lessons;
 
   return (
