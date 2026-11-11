@@ -9,6 +9,28 @@
   padding: 1.5rem 2rem 3rem;
 }
 
+.app-layout__progress-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #c74b58;
+  border-radius: 0.5rem;
+  background: #fbeaec;
+  color: #742633;
+
+  button {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid currentColor;
+    border-radius: 0.3rem;
+    background: #fff;
+    color: inherit;
+    cursor: pointer;
+  }
+}
+
 @media (max-width: 720px) {
   .app-layout__main {
     padding: 1rem 0.75rem 2rem;

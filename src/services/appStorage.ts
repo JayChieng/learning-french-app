@@ -3,6 +3,7 @@ import type { AppState, QuizTopicResult } from "../types/app";
 
 type PersistedUserState = {
   activities?: AppState["activities"];
+  activityDates?: string[];
   weeklyActivity?: number[];
   quiz?: AppState["quiz"];
   quizResults?: Record<string, QuizTopicResult>;
@@ -63,6 +64,7 @@ export function buildBaseState(): AppState {
     tips: [],
     resources: [],
     activities: [],
+    activityDates: [],
     weeklyActivity: [0, 0, 0, 0, 0, 0, 0],
     quiz: {
       currentQuestionIndex: 0,

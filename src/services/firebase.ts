@@ -73,6 +73,7 @@ if (typeof window !== "undefined" && import.meta.env.VITE_FIREBASE_APPCHECK_SITE
 
 type PersistedUserState = {
   activities?: ActivityEntry[];
+  activityDates?: string[];
   weeklyActivity?: number[];
   quiz?: AppState["quiz"];
   quizResults?: Record<string, QuizTopicResult>;
@@ -242,6 +243,7 @@ export async function writeRemoteAppState(
     // keys inside the saved map cannot fail the rules' strict key validation.
     transaction.update(userRef, {
       activities: state.activities,
+      activityDates: state.activityDates,
       weeklyActivity: state.weeklyActivity,
       quiz: {
         currentQuestionIndex: state.quiz.currentQuestionIndex,
@@ -279,6 +281,7 @@ export async function ensureUserProfile(user: {
       createdAt: serverTimestamp(),
       role: "user",
       activities: [],
+      activityDates: [],
       weeklyActivity: [0, 0, 0, 0, 0, 0, 0],
       quiz: {
         currentQuestionIndex: 0,

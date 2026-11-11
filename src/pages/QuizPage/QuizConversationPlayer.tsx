@@ -5,6 +5,7 @@ import type {
   QuizTopic,
 } from "../../types/app";
 import { useAppData } from "../../context/AppDataContext";
+import volumeIcon from "../../assets/icons/icons8-volume-48.png";
 import {
   playQuizAnswerSound,
   speakQuizTexts,
@@ -425,6 +426,17 @@ function QuizConversationSession({
                       </>
                     ) : (
                       turnOutcome ? turnOutcome.displayText : turn.text
+                    )}
+                    {(!isActiveTurn || turnOutcome) && (
+                      <button
+                        type="button"
+                        className="quiz-conversation__listen"
+                        aria-label={`Play pronunciation for ${turn.text}`}
+                        disabled={!isOutcomeSpeechComplete}
+                        onClick={() => speakQuizTexts([turn.text], "fr-FR")}
+                      >
+                        <img src={volumeIcon} alt="" />
+                      </button>
                     )}
                   </div>
                 </div>

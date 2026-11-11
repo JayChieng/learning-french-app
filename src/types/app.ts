@@ -235,6 +235,7 @@ export type AppState = {
   tips: Tip[];
   resources: Resource[];
   activities: ActivityEntry[];
+  activityDates: string[];
   weeklyActivity: number[];
   quiz: {
     currentQuestionIndex: number;

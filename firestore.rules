@@ -138,6 +138,7 @@ service cloud.firestore {
           'email',
           'createdAt',
           'activities',
+          'activityDates',
           'weeklyActivity',
           'quiz',
           'quizResults',
@@ -148,6 +149,9 @@ service cloud.firestore {
         && isValidEmail(request.resource.data.email)
         && request.resource.data.createdAt is timestamp
         && request.resource.data.activities is list && request.resource.data.activities.size() <= 100
+        && (!('activityDates' in request.resource.data)
+          || (request.resource.data.activityDates is list
+            && request.resource.data.activityDates.size() <= 366))
         && isValidWeeklyActivity(request.resource.data.weeklyActivity)
         && isValidQuizState(request.resource.data.quiz)
         && request.resource.data.quizResults is map
@@ -156,12 +160,16 @@ service cloud.firestore {
       allow update: if (isOwner(userId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'activities',
+          'activityDates',
           'weeklyActivity',
           'quiz',
           'quizResults',
           'completedLessonIds'
         ])
         && request.resource.data.activities is list && request.resource.data.activities.size() <= 100
+        && (!('activityDates' in request.resource.data)
+          || (request.resource.data.activityDates is list
+            && request.resource.data.activityDates.size() <= 366))
         && isValidWeeklyActivity(request.resource.data.weeklyActivity)
         && isValidQuizState(request.resource.data.quiz)
         && request.resource.data.quizResults is map

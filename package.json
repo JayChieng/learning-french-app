@@ -62,6 +62,8 @@
     "seed:lesson47": "node scripts/lessons/seedLesson47.js",
     "seed:lesson48": "node scripts/lessons/seedLesson48.js",
     "seed:lesson49": "node scripts/lessons/seedLesson49.js",
+    "seed:lesson50": "node scripts/lessons/seedLesson50.js",
+    "seed:lesson51": "node scripts/lessons/seedLesson51.js",
     "seed:quiz40": "node scripts/quizzes/seedQuiz40.js",
     "seed:quiz41": "node scripts/quizzes/seedQuiz41.js",
     "seed:quiz42": "node scripts/quizzes/seedQuiz42.js",
@@ -72,6 +74,8 @@
     "seed:quiz47": "node scripts/quizzes/seedQuiz47.js",
     "seed:quiz48": "node scripts/quizzes/seedQuiz48.js",
     "seed:quiz49": "node scripts/quizzes/seedQuiz49.js",
+    "seed:quiz50": "node scripts/quizzes/seedQuiz50.js",
+    "seed:quiz51": "node scripts/quizzes/seedQuiz51.js",
     "seed:quiz49.5": "node scripts/quizzes/seedQuiz49.5.js",
     "seed:quiz33.5": "node scripts/quizzes/seedQuizWeek1.js",
     "preview": "vite preview"

@@ -4,15 +4,9 @@ import Breadcrumb from "../../components/Breadcrumb/Breadcrumb";
 import { useAppData } from "../../context/AppDataContext";
 import type { QuizTopic } from "../../types/app";
 import { getQuizzesFromFirestore } from "../../services/firebase";
-import type { ActivityEntry } from "../../types/app";
 import "./ProgressPage.scss";
 
 const DAY_HEADERS = ["S", "M", "T", "W", "T", "F", "S"];
-
-type HeatmapWeek = {
-  label: string;
-  cells: number[];
-};
 
 function ProgressPage() {
   const {
@@ -20,6 +14,7 @@ function ProgressPage() {
     lessonDetails,
     vocabulary,
     activities,
+    activityDates,
     progressSummary,
     quizResults,
   } = useAppData();
@@ -95,10 +90,9 @@ function ProgressPage() {
       vocabularyCoverage * 0.2
   );
 
-  const heatmapWeeks = buildFiveWeekHeatmap(activities);
-
-  const hasRecordedHistory = heatmapWeeks.some((week) =>
-    week.cells.some((value) => value > 0)
+  const monthCalendar = buildMonthCalendar(activityDates);
+  const hasRecordedActivity = monthCalendar.days.some(
+    (day) => day?.hasActivity
   );
 
   return (
@@ -151,60 +145,62 @@ function ProgressPage() {
           </p>
         </article>
 
-        <article className="progress-page__stat-card">
-          <span className="progress-page__stat-label">Current Streak</span>
-          <strong>
-            {progressSummary.streakDays} day
-            {progressSummary.streakDays === 1 ? "" : "s"}
-          </strong>
-          <p>Based on your recent recorded activity</p>
-        </article>
       </div>
 
       <div className="progress-page__main">
         <article className="progress-page__panel progress-page__panel--wide">
           <div className="progress-page__panel-head">
             <div>
-              <h2>Weekly Progress</h2>
-              <p>Last 5 weeks of activity based on lessons and quiz practice.</p>
+              <h2>Activity Calendar</h2>
+              <p>Days with lesson or quiz activity are highlighted.</p>
             </div>
-
-            {hasRecordedHistory && (
-              <span className="progress-page__streak-badge">
-                {progressSummary.streakDays}-Day Streak
-              </span>
-            )}
+            <span className="progress-page__calendar-month">
+              {monthCalendar.monthLabel}
+            </span>
           </div>
 
-          <div className="progress-page__heatmap-wrapper">
-            <div className="progress-page__heatmap-corner" />
-
-            {DAY_HEADERS.map((day) => (
-              <div key={day} className="progress-page__heatmap-day">
+          <div className="progress-page__calendar">
+            {DAY_HEADERS.map((day, index) => (
+              <div key={`${day}-${index}`} className="progress-page__calendar-weekday">
                 {day}
               </div>
             ))}
 
-            {heatmapWeeks.map((week) => (
-              <div key={week.label} className="progress-page__heatmap-row">
-                <div className="progress-page__heatmap-label">{week.label}</div>
-
-                <div className="progress-page__heatmap-cells">
-                  {week.cells.map((value, index) => (
-                    <span
-                      key={`${week.label}-${index}`}
-                      className={`progress-page__heatmap-cell level-${value}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+            {monthCalendar.days.map((day, index) =>
+              day ? (
+                <time
+                  key={day.dateKey}
+                  dateTime={day.dateKey}
+                  className={[
+                    "progress-page__calendar-day",
+                    day.hasActivity && "is-active",
+                    day.isToday && "is-today",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  aria-label={`${monthCalendar.monthLabel} ${day.day}${
+                    day.hasActivity ? ", activity recorded" : ""
+                  }`}
+                  title={`${monthCalendar.monthLabel} ${day.day}${
+                    day.hasActivity ? " - activity recorded" : ""
+                  }`}
+                >
+                  {day.day}
+                </time>
+              ) : (
+                <span
+                  key={`empty-${index}`}
+                  className="progress-page__calendar-empty"
+                  aria-hidden="true"
+                />
+              )
+            )}
           </div>
 
-          {!hasRecordedHistory && (
+          {!hasRecordedActivity && (
             <p className="progress-page__empty-note">
-              No activity recorded yet. Complete a lesson or answer quiz questions
-              to start filling this chart.
+              No activity this month yet. Complete a lesson or practice a quiz
+              to mark a day on the calendar.
             </p>
           )}
         </article>
@@ -266,86 +262,49 @@ function ProgressPage() {
   );
 }
 
-function buildFiveWeekHeatmap(activities: ActivityEntry[]): HeatmapWeek[] {
-  const today = startOfDay(new Date());
-  const oldestDate = addDays(today, -34);
-  const dailyCounts = new Array<number>(35).fill(0);
+function buildMonthCalendar(activityDates: string[]) {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayKey = toLocalDateKey(today);
+  const activeDates = new Set(activityDates);
+  const days: Array<{
+    day: number;
+    dateKey: string;
+    hasActivity: boolean;
+    isToday: boolean;
+  } | null> = Array.from({ length: new Date(year, month, 1).getDay() }, () => null);
 
-  const hasTimestampedActivity = activities.some(
-    (activity) => typeof activity.createdAt === "number"
-  );
-
-  if (hasTimestampedActivity) {
-    activities.forEach((activity) => {
-      if (typeof activity.createdAt !== "number") return;
-
-      const activityDate = startOfDay(new Date(activity.createdAt));
-
-      if (activityDate < oldestDate || activityDate > today) return;
-
-      const diffDays = Math.floor(
-        (activityDate.getTime() - oldestDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      if (diffDays >= 0 && diffDays < dailyCounts.length) {
-        dailyCounts[diffDays] += 1;
-      }
-    });
-  } else {
-    const fallbackCounts = [...dailyCounts];
-
-    activities
-      .slice()
-      .reverse()
-      .slice(0, fallbackCounts.length)
-      .forEach((_, index) => {
-        const targetIndex = fallbackCounts.length - 1 - index;
-        if (targetIndex >= 0) {
-          fallbackCounts[targetIndex] = 1;
-        }
-      });
-
-    for (let index = 0; index < fallbackCounts.length; index += 1) {
-      dailyCounts[index] = fallbackCounts[index];
-    }
-  }
-
-  const weeks: HeatmapWeek[] = [];
-
-  for (let weekIndex = 0; weekIndex < 5; weekIndex += 1) {
-    const startIndex = weekIndex * 7;
-    const firstDate = addDays(oldestDate, startIndex);
-
-    weeks.push({
-      label: firstDate.toLocaleDateString("en-CA", {
-        month: "short",
-        day: "numeric",
-      }),
-      cells: dailyCounts
-        .slice(startIndex, startIndex + 7)
-        .map((count) => mapCountToLevel(count)),
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateKey = toLocalDateKey(new Date(year, month, day));
+    days.push({
+      day,
+      dateKey,
+      hasActivity: activeDates.has(dateKey),
+      isToday: dateKey === todayKey,
     });
   }
 
-  return weeks;
+  while (days.length % 7 !== 0) {
+    days.push(null);
+  }
+
+  return {
+    days,
+    monthLabel: new Date(year, month, 1).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    }),
+  };
 }
 
-function mapCountToLevel(count: number) {
-  if (count <= 0) return 0;
-  if (count === 1) return 1;
-  if (count === 2) return 2;
-  if (count === 3) return 3;
-  return 4;
-}
+function toLocalDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return startOfDay(next);
+  return `${year}-${month}-${day}`;
 }
 
 export default ProgressPage;

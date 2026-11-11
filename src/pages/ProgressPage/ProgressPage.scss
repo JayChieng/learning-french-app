@@ -56,7 +56,7 @@
 
 .progress-page__stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
   margin-bottom: 1.5rem;
 }
@@ -124,11 +124,11 @@
   line-height: 1.6;
 }
 
-.progress-page__streak-badge {
+.progress-page__calendar-month {
   padding: 0.65rem 0.9rem;
   border-radius: 999px;
-  background: #eef7ef;
-  color: #5a8d45;
+  background: #f5f8fc;
+  color: #5f6f86;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -151,63 +151,42 @@
   margin-top: 0;
 }
 
-.progress-page__heatmap-wrapper {
+.progress-page__calendar {
   display: grid;
-  grid-template-columns: 118px repeat(7, minmax(28px, 1fr));
-  gap: 0.7rem;
-  align-items: center;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.55rem;
 }
 
-.progress-page__heatmap-corner {
-  height: 1px;
-}
-
-.progress-page__heatmap-day {
+.progress-page__calendar-weekday {
+  padding: 0.35rem 0;
   text-align: center;
   color: #5f6f86;
   font-weight: 700;
 }
 
-.progress-page__heatmap-row {
-  display: contents;
-}
-
-.progress-page__heatmap-label {
-  color: #5f6f86;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.progress-page__heatmap-cells {
-  grid-column: span 7;
-  display: grid;
-  grid-template-columns: repeat(7, minmax(28px, 1fr));
-  gap: 0.7rem;
-}
-
-.progress-page__heatmap-cell {
+.progress-page__calendar-day {
   aspect-ratio: 1;
-  border-radius: 7px;
-}
-
-.level-0 {
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
   background: #eef2f7;
+  color: #53627a;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.level-1 {
-  background: #deeddc;
+.progress-page__calendar-day.is-active {
+  background: #9bd39a;
+  color: #1d5426;
 }
 
-.level-2 {
-  background: #b8ddb1;
+.progress-page__calendar-day.is-today {
+  outline: 2px solid #6ca9f7;
+  outline-offset: 1px;
 }
 
-.level-3 {
-  background: #84bf72;
-}
-
-.level-4 {
-  background: #62a34d;
+.progress-page__calendar-empty {
+  aspect-ratio: 1;
 }
 
 .progress-page__ring {
@@ -315,13 +294,8 @@
     flex-wrap: wrap;
   }
 
-  .progress-page__heatmap-wrapper {
-    grid-template-columns: 90px repeat(7, minmax(22px, 1fr));
-    gap: 0.45rem;
-  }
-
-  .progress-page__heatmap-cells {
-    gap: 0.45rem;
+  .progress-page__calendar {
+    gap: 0.4rem;
   }
 }
 
@@ -330,26 +304,7 @@
     grid-template-columns: 1fr;
   }
 
-  .progress-page__heatmap-wrapper {
-    grid-template-columns: 1fr;
-  }
-
-  .progress-page__heatmap-corner,
-  .progress-page__heatmap-day {
-    display: none;
-  }
-
-  .progress-page__heatmap-row {
-    display: block;
-    margin-bottom: 0.85rem;
-  }
-
-  .progress-page__heatmap-label {
-    display: block;
-    margin-bottom: 0.45rem;
-  }
-
-  .progress-page__heatmap-cells {
-    grid-column: auto;
+  .progress-page__calendar-day {
+    border-radius: 7px;
   }
 }

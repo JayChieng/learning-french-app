@@ -34,6 +34,11 @@ import type {
 
 type AppDataContextValue = AppState & {
   authReady: boolean;
+  progressReady: boolean;
+  progressLoadError: string | null;
+  progressSyncError: string | null;
+  retryProgressLoad: () => void;
+  retryProgressSync: () => void;
   completeLesson: (lessonId: string) => void;
   refreshLearningContent: () => Promise<void>;
   getLessonDetailById: (lessonId: string) => LessonDetail | undefined;
@@ -48,7 +53,6 @@ type AppDataContextValue = AppState & {
     lessonCompletionRate: number;
     learnedWords: number;
     quizAverage: number;
-    streakDays: number;
   };
 };
 
@@ -60,6 +64,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [authReady, setAuthReady] = useState(false);
   const [hasHydrated, setHasHydrated] = useState(false);
   const [hydratedForUserId, setHydratedForUserId] = useState<string | null>(null);
+  const [progressLoadError, setProgressLoadError] = useState<string | null>(null);
+  const [progressSyncError, setProgressSyncError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [syncAttempt, setSyncAttempt] = useState(0);
 
   // Keep the latest in-memory snapshot available for manual sync calls.
   const stateRef = useRef<AppState>(buildBaseState());
@@ -185,6 +193,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const run = async () => {
       setHasHydrated(false);
       setHydratedForUserId(null);
+      setProgressLoadError(null);
+      setProgressSyncError(null);
       const baseState = buildBaseState();
 
       if (!userId) {
@@ -223,13 +233,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      const activities = remoteState?.activities ?? baseState.activities;
+
       setState((current) => ({
         ...baseState,
         auth: current.auth,
         lessons,
         lessonDetails,
         vocabulary,
-        activities: remoteState?.activities ?? baseState.activities,
+        activities,
+        activityDates: mergeActivityDates(
+          remoteState?.activityDates ?? [],
+          activities
+        ),
         weeklyActivity: remoteState?.weeklyActivity ?? baseState.weeklyActivity,
         quiz: remoteState?.quiz ?? baseState.quiz,
         quizResults: remoteState?.quizResults ?? {},
@@ -248,8 +264,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       // Keep sync disabled when hydration fails. Writing this fallback state
       // would replace saved progress with empty arrays on the next render.
       setState((current) => ({ ...buildBaseState(), auth: current.auth }));
+      setProgressLoadError("Could not load your progress. Check your connection and try again.");
     });
-  }, [userId, authReady]);
+  }, [userId, authReady, loadAttempt]);
 
   useEffect(() => {
     // Do not push state to Firestore until hydration for the current user finishes.
@@ -257,10 +274,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    syncAppState(stateRef.current, userId).catch((error) => {
-      console.error('Failed to sync app state.', error);
+    let active = true;
+    syncAppState(state, userId).then(() => {
+      if (active) setProgressSyncError(null);
+    }).catch((error: unknown) => {
+      console.error("Failed to sync app state.", error);
+      if (active) {
+        setProgressSyncError("Could not save your progress. Keep this page open and retry.");
+      }
     });
-  }, [state, userId, authReady, hasHydrated, hydratedForUserId]);
+
+    return () => {
+      active = false;
+    };
+  }, [state, userId, authReady, hasHydrated, hydratedForUserId, syncAttempt]);
 
   const value = useMemo<AppDataContextValue>(() => {
     const completedLessons = state.lessons.filter(
@@ -309,6 +336,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     return {
       ...state,
       authReady,
+      progressReady: hasHydrated && hydratedForUserId === (userId ?? "__guest__"),
+      progressLoadError,
+      progressSyncError,
+      retryProgressLoad: () => setLoadAttempt((attempt) => attempt + 1),
+      retryProgressSync: () => setSyncAttempt((attempt) => attempt + 1),
 
       refreshLearningContent: async () => {
         const completedIds = state.lessons
@@ -357,6 +389,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
               current.activities,
               `Finished ${getLessonTitle(normalizedLessons, lessonId)}.`
             ),
+            activityDates: recordActivityDate(current.activityDates, Date.now()),
             weeklyActivity: bumpWeeklyActivity(current.weeklyActivity),
           };
         });
@@ -403,12 +436,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
 
       signOut: async () => {
-        if (userId) {
-          try {
-            await syncAppState(stateRef.current, userId);
-          } catch (error) {
-            console.error("Could not sync app state before signing out.", error);
-          }
+        if (userId && hasHydrated && hydratedForUserId === userId) {
+          await syncAppState(stateRef.current, userId);
         }
 
         await firebaseSignOut();
@@ -438,6 +467,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             current.activities,
             `Completed quiz: ${quizId} (${result.correct}/${result.total}).`
           ),
+          activityDates: recordActivityDate(current.activityDates, Date.now()),
           weeklyActivity: bumpWeeklyActivity(current.weeklyActivity),
         }));
       },
@@ -458,10 +488,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           totalSteps === 0 ? 0 : Math.round((completedSteps / totalSteps) * 100),
         learnedWords,
         quizAverage,
-        streakDays: calculateStreak(state.weeklyActivity),
       },
     };
-  }, [state, authReady, userId]);
+  }, [state, authReady, userId, hasHydrated, hydratedForUserId, progressLoadError, progressSyncError]);
 
   return (
     <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>
@@ -494,6 +523,39 @@ function prependActivity(activities: ActivityEntry[], message: string) {
   return [nextEntry, ...activities].slice(0, 10);
 }
 
+function mergeActivityDates(activityDates: string[], activities: ActivityEntry[]) {
+  const legacyDates = activities.flatMap((activity) =>
+    typeof activity.createdAt === "number"
+      ? [toLocalDateKey(new Date(activity.createdAt))]
+      : []
+  );
+
+  return Array.from(
+    new Set([...activityDates.filter(isDateKey), ...legacyDates])
+  )
+    .sort((first, second) => second.localeCompare(first))
+    .slice(0, 366);
+}
+
+function recordActivityDate(activityDates: string[], timestamp: number) {
+  return mergeActivityDates(
+    [...activityDates, toLocalDateKey(new Date(timestamp))],
+    []
+  );
+}
+
+function toLocalDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function isDateKey(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
 function bumpWeeklyActivity(activity: number[]) {
   const next = [...activity];
   const lastIndex = next.length - 1;
@@ -503,18 +565,4 @@ function bumpWeeklyActivity(activity: number[]) {
 
 function getLessonTitle(lessons: Lesson[], lessonId: string) {
   return lessons.find((lesson) => lesson.id === lessonId)?.title ?? "lesson";
-}
-
-function calculateStreak(activity: number[]) {
-  let streak = 0;
-
-  for (let index = activity.length - 1; index >= 0; index -= 1) {
-    if ((activity[index] ?? 0) <= 0) {
-      break;
-    }
-
-    streak += 1;
-  }
-
-  return streak;
 }
